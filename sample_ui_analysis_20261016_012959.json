@@ -1,0 +1,139 @@
+{
+  "page_summary": "E-commerce landing page featuring a promotional hero section, navigation bar, and product grid.",
+  "visual_health_score": 78,
+  "ui_elements": {
+    "buttons": [
+      {
+        "label": "Shop Now",
+        "type": "primary",
+        "location": "hero section center",
+        "state": "normal"
+      },
+      {
+        "label": "Sign In",
+        "type": "secondary",
+        "location": "top-right header",
+        "state": "normal"
+      },
+      {
+        "label": "Add to Cart",
+        "type": "primary",
+        "location": "product card 1",
+        "state": "normal"
+      }
+    ],
+    "input_fields": [
+      {
+        "placeholder": "Search products, brands and categories...",
+        "type": "search",
+        "location": "header center",
+        "has_visible_label": false
+      },
+      {
+        "placeholder": "Enter your email for 10% off",
+        "type": "email",
+        "location": "newsletter footer",
+        "has_visible_label": true
+      }
+    ],
+    "text_elements": [
+      {
+        "text_snippet": "Summer Collection 2026 - Discover New Arrivals",
+        "role": "h1",
+        "readability": "high"
+      },
+      {
+        "text_snippet": "Limited time offer. Free shipping over $50.",
+        "role": "body",
+        "readability": "medium"
+      },
+      {
+        "text_snippet": "Featured Best Sellers",
+        "role": "h2",
+        "readability": "high"
+      }
+    ],
+    "navigation_elements": [
+      {
+        "label": "Home",
+        "type": "nav_link",
+        "location": "header"
+      },
+      {
+        "label": "Categories",
+        "type": "dropdown",
+        "location": "header"
+      },
+      {
+        "label": "About Us",
+        "type": "nav_link",
+        "location": "footer"
+      }
+    ],
+    "media_elements": [
+      {
+        "type": "logo",
+        "location": "top-left header",
+        "status": "rendered_properly"
+      },
+      {
+        "type": "image",
+        "location": "hero banner background",
+        "status": "rendered_properly"
+      },
+      {
+        "type": "image",
+        "location": "product card 3",
+        "status": "placeholder"
+      }
+    ]
+  },
+  "visual_issues": [
+    {
+      "issue_id": "ISSUE-001",
+      "category": "overlapping_elements",
+      "severity": "high",
+      "title": "Hero subtitle overlaps primary CTA button",
+      "location": "Hero section, center right",
+      "description": "The description paragraph extends downwards and overlaps the top 20% of the 'Shop Now' button on smaller viewports.",
+      "recommendation": "Add `margin-bottom: 1.5rem` to the subtitle paragraph or wrap in a flex column layout with consistent gap."
+    },
+    {
+      "issue_id": "ISSUE-002",
+      "category": "unreadable_text",
+      "severity": "medium",
+      "title": "Low contrast on footer newsletter disclaimer",
+      "location": "Footer section, bottom center",
+      "description": "Light grey text (#A0A0A0) on white background fails WCAG 2.1 AA minimum contrast requirement (2.4:1 ratio).",
+      "recommendation": "Darken font color to at least #595959 to achieve minimum 4.5:1 contrast ratio."
+    },
+    {
+      "issue_id": "ISSUE-003",
+      "category": "missing_elements",
+      "severity": "medium",
+      "title": "Product card 3 displays broken/empty image placeholder",
+      "location": "Product grid, item 3",
+      "description": "Image element has an unrendered gray placeholder box instead of a product image.",
+      "recommendation": "Verify image asset URL and implement a styled fallback icon for missing product media."
+    }
+  ],
+  "recommendations": [
+    "Fix hero section flexbox gap to prevent button overlap across different viewport widths.",
+    "Increase text contrast in footer disclaimer to meet WCAG AA standards.",
+    "Verify product image asset pipeline to ensure all grid items load high-resolution images."
+  ],
+  "metadata": {
+    "timestamp": "2026-10-16T01:29:59.703245+00:00",
+    "screenshot_path": "C:\\Users\\USER\\OneDrive\\Desktop\\Omnisight-1\\sample_screenshots\\sample_ui.png",
+    "screenshot_filename": "sample_ui.png",
+    "image_dimensions": {
+      "width": 1200,
+      "height": 800
+    },
+    "file_size_bytes": 20895,
+    "model": "mock-vlm-engine",
+    "status": "success",
+    "mock_mode": true,
+    "duration_seconds": 0.0
+  }
+}
