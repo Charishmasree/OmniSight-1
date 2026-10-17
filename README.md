@@ -360,3 +360,18 @@ All module exceptions inherit from `OmniSightVisionError` (`config.py`), making 
 | `ImageSizeExceededError` | Image exceeds `MAX_IMAGE_SIZE_MB` (15 MB) | Resize or compress screenshot before analysis |
 | `ModelInferenceError` | VLM API rate limit, quota error, or timeout | Verify internet connection and API key quota |
 | `ResponseParseError` | VLM response could not be parsed as valid JSON | Check prompt formatting or retry request |
+
+
+### AI Integration – Vision-Language Model (VLM)
+
+**Project:** OmniSight – Multimodal UI Self-Healing & RPA Agent
+
+**Progress:**
+- Implemented screenshot-based UI issue analysis using AI.
+- Worked on identifying overlapping text, clipped buttons, and misaligned webpage elements.
+- Added structured suggestions for potential CSS fixes.
+- Updated documentation and test cases for the AI analysis module.
+
+**Technologies:** Python, Generative AI, Vision-Language Models (VLMs), Prompt Engineering, HTML, CSS.
+
+
