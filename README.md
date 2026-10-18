@@ -375,3 +375,49 @@ All module exceptions inherit from `OmniSightVisionError` (`config.py`), making 
 **Technologies:** Python, Generative AI, Vision-Language Models (VLMs), Prompt Engineering, HTML, CSS.
 
 
+
+## Week 2 – Member 2: AI Integration (VLM)
+
+Implemented the AI integration module for the OmniSight project.
+
+### Responsibilities
+- Analyze webpage screenshots and HTML content using a Vision Language Model (VLM).
+- Detect UI issues such as overlapping elements, clipped buttons, and misalignment.
+- Generate structured JSON output containing issue details and suggested CSS fixes.
+- Add prompt templates and tests for validating the analysis output.
+- Document setup instructions and usage in the README.
+
+### Files
+- `vision_analyzer.py`
+- `prompts.py`
+- `test_vision.py`
+- `sample_images/`
+- `README.md`
+
+### Testing
+Run the module tests using the instructions in the README. Actual test results depend on the current implementation and environment.
+
+ Browser Automation and API Scaffolding
+
+### 1. Browser Automation
+- Set up Python and Playwright for browser automation.
+- Automated opening and navigating a test website.
+- Captured webpage screenshots for UI inspection.
+- Extracted webpage HTML/DOM for further analysis.
+
+### 2. API Scaffolding
+- Set up the initial FastAPI backend structure.
+- Created the basic API endpoint structure for triggering automation.
+- Prepared the backend for future integration with the AI analysis module.
+
+### 3. Testing
+- Tested the browser automation workflow.
+- Resolved initial execution issues.
+- Verified screenshot and HTML collection.
+
+## Outcome
+Completed the initial browser automation and backend scaffolding needed for Week 2 AI/VLM integration.
+
+
+
+
