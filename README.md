@@ -376,48 +376,49 @@ All module exceptions inherit from `OmniSightVisionError` (`config.py`), making 
 
 
 
-## Week 2 – Member 2: AI Integration (VLM)
 
-Implemented the AI integration module for the OmniSight project.
+# OmniSight Vision Testing
 
-### Responsibilities
-- Analyze webpage screenshots and HTML content using a Vision Language Model (VLM).
-- Detect UI issues such as overlapping elements, clipped buttons, and misalignment.
-- Generate structured JSON output containing issue details and suggested CSS fixes.
-- Add prompt templates and tests for validating the analysis output.
-- Document setup instructions and usage in the README.
+## 1. Purpose
+The purpose of vision testing is to check whether the OmniSight AI vision module can process sample UI screenshots and return analysis results.
 
-### Files
-- `vision_analyzer.py`
-- `prompts.py`
-- `test_vision.py`
-- `sample_images/`
-- `README.md`
+## 2. Testing Objectives
+- Verify that the sample screenshot is available.
+- Check that the vision module can be imported.
+- Review the prompts used for screenshot analysis.
+- Check that analysis results are returned in the expected format.
+- Identify errors that need further investigation.
 
-### Testing
-Run the module tests using the instructions in the README. Actual test results depend on the current implementation and environment.
+## 3. Test Scenarios
 
- Browser Automation and API Scaffolding
+| Test ID | Test Scenario | Expected Result |
+|---|---|---|
+| VT-01 | Load the sample UI screenshot | The screenshot is available for analysis |
+| VT-02 | Import the vision module | The module loads without import errors |
+| VT-03 | Prepare the analysis prompt | A non-empty prompt is available |
+| VT-04 | Run screenshot analysis | The module returns a result or a clear error |
+| VT-05 | Review the analysis result | The output can be inspected |
 
-### 1. Browser Automation
-- Set up Python and Playwright for browser automation.
-- Automated opening and navigating a test website.
-- Captured webpage screenshots for UI inspection.
-- Extracted webpage HTML/DOM for further analysis.
+## 4. Test Inputs
+- Sample UI screenshot: `sample_ui.png`
+- Vision module: `ai_vision.py`
+- Prompt module: `prompts.py`
 
-### 2. API Scaffolding
-- Set up the initial FastAPI backend structure.
-- Created the basic API endpoint structure for triggering automation.
-- Prepared the backend for future integration with the AI analysis module.
+## 5. Testing Process
+1. Prepare a sample UI screenshot.
+2. Load the screenshot using the vision module.
+3. Prepare the appropriate analysis prompt.
+4. Run the analysis using the configured vision model.
+5. Review the output and note any errors.
+6. Repeat the test after fixing identified issues.
 
-### 3. Testing
-- Tested the browser automation workflow.
-- Resolved initial execution issues.
-- Verified screenshot and HTML collection.
+## 6. Expected Outcome
+The tests should help verify the basic setup of the vision module, the availability of test inputs, and the handling of analysis results.
 
-## Outcome
-Completed the initial browser automation and backend scaffolding needed for Week 2 AI/VLM integration.
+## 7. Limitations
+The analysis depends on the selected vision model, its configuration, the input screenshot, and the quality of the prompt. Successful execution does not guarantee that every visual issue will be detected.
 
-
+## 8. Week 1 Summary
+This document records the initial vision testing plan for OmniSight Member 2. Test results should be recorded after the scenarios have actually been executed.
 
 
