@@ -258,3 +258,39 @@ class TestVisionAnalyzer(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+import unittest
+from pathlib import Path
+
+
+class TestVisionFiles(unittest.TestCase):
+
+    def test_sample_image_exists(self):
+        image_path = Path("sample_ui.png")
+        self.assertTrue(
+            image_path.exists(),
+            "Sample UI image should exist"
+        )
+
+    def test_sample_image_is_not_empty(self):
+        image_path = Path("sample_ui.png")
+        if image_path.exists():
+            self.assertGreater(
+                image_path.stat().st_size, 0,
+                "Sample image should not be empty"
+            )
+
+    def test_vision_module_exists(self):
+        vision_path = Path("ai_vision.py")
+        self.assertTrue(
+            vision_path.exists(),
+            "AI vision module should exist"
+        )
+
+
+if __name__ == "__main__":
+    unittest.main()
+
