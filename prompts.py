@@ -282,3 +282,67 @@ def get_mock_analysis_data(screenshot_path: str = "sample_screenshot.png") -> Di
             "Verify product image asset pipeline to ensure all grid items load high-resolution images."
         ]
     }
+
+
+
+
+"""Prompts used for OmniSight AI vision analysis."""
+
+VISION_ANALYSIS_PROMPT = """
+You are an AI assistant that analyses screenshots of websites and applications.
+
+Examine the provided screenshot carefully and report:
+
+1. UI elements that are visible, such as buttons, text fields,
+   menus, headings, images, and navigation bars.
+2. The layout and arrangement of the elements.
+3. Any visible error messages or unusual UI behaviour.
+4. Text that can be read clearly from the screenshot.
+5. Possible usability or accessibility issues.
+
+Rules:
+- Describe only what is visible in the screenshot.
+- Do not invent missing text or UI elements.
+- If something is unclear, state that it is unclear.
+- Keep the analysis clear, structured, and concise.
+"""
+
+UI_ELEMENT_PROMPT = """
+Identify the main user-interface elements in the screenshot.
+
+For each element, describe:
+- Element type
+- Visible text, if any
+- Approximate location
+- Purpose, if it can be determined
+
+Do not guess information that cannot be confirmed from the image.
+"""
+
+UI_ISSUE_PROMPT = """
+Review the screenshot for visible user-interface problems.
+
+Look for:
+- Overlapping or misaligned elements
+- Text that is cut off or difficult to read
+- Missing or broken images
+- Inconsistent spacing
+- Visible error messages
+
+For each possible issue, explain what is visible.
+Do not claim that a button or feature is broken unless the screenshot
+provides evidence.
+"""
+
+def get_vision_analysis_prompt():
+    """Return the main screenshot analysis prompt."""
+    return VISION_ANALYSIS_PROMPT
+
+def get_ui_element_prompt():
+    """Return the prompt for identifying UI elements."""
+    return UI_ELEMENT_PROMPT
+
+def get_ui_issue_prompt():
+    """Return the prompt for identifying visible UI issues."""
+    return UI_ISSUE_PROMPT
+
