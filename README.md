@@ -361,64 +361,211 @@ All module exceptions inherit from `OmniSightVisionError` (`config.py`), making 
 | `ModelInferenceError` | VLM API rate limit, quota error, or timeout | Verify internet connection and API key quota |
 | `ResponseParseError` | VLM response could not be parsed as valid JSON | Check prompt formatting or retry request |
 
+---
 
-### AI Integration – Vision-Language Model (VLM)
+# 🚀 OmniSight Week 2: Member 2 (AI Integration) & Member 3 (Action Engine)
 
-**Project:** OmniSight – Multimodal UI Self-Healing & RPA Agent
+In Week 2, OmniSight extends its capabilities with dedicated packages for:
+1. **Member 2 (`ai/`)**: Advanced Vision-Language Model visual defect detection powered by Google Gemini, detecting overlapping text, misaligned buttons, clipped elements, and responsive layout issues, with structured CSS fixes.
+2. **Member 3 (`action_engine/`)**: Resilient Action Engine that validates AI responses, handles malformed/missing data safely, and compiles standardized JSON-compatible remediation actions for Member 4's FastAPI integration.
 
-**Progress:**
-- Implemented screenshot-based UI issue analysis using AI.
-- Worked on identifying overlapping text, clipped buttons, and misaligned webpage elements.
-- Added structured suggestions for potential CSS fixes.
-- Updated documentation and test cases for the AI analysis module.
+```mermaid
+flowchart LR
+    M1["Member 1: Playwright<br>Screenshot + HTML DOM"] -->|screenshot, html_content, page_url| M2["Member 2: AI Integration<br>(ai/vision_analyzer.py)"]
+    M2 -->|Structured AI QA Dict| M3["Member 3: Action Engine<br>(action_engine/processor.py)"]
+    M3 -->|Standardized JSON Payload| M4["Member 4: FastAPI Backend<br>& Dashboard Endpoints"]
+```
 
-**Technologies:** Python, Generative AI, Vision-Language Models (VLMs), Prompt Engineering, HTML, CSS.
+---
 
+## 🧠 Member 2 – AI Integration (`ai/`)
 
+### Module Files
+- `ai/vision_analyzer.py`: Main `VisionAnalyzer` class and `analyze_screenshot()` function.
+- `ai/prompts.py`: System prompt, task builder `build_analysis_prompt()`, JSON schema, and mock generator `get_mock_vlm_response()`.
+- `ai/test_vision.py`: Comprehensive test suite with mocked Gemini client (17 tests, zero API cost).
 
+### Key Function: `analyze_screenshot`
+```python
+from ai.vision_analyzer import analyze_screenshot
 
-# OmniSight Vision Testing
+result = analyze_screenshot(
+    screenshot="sample_screenshots/sample_ui.png",  # str path, Path, bytes, or PIL Image
+    html_content="<div class='metrics-grid'><button class='btn-primary'>Run</button></div>",  # optional DOM context
+    page_url="https://app.omnisight.local/dashboard",  # optional target URL
+    mock_mode=True  # set to False for live Gemini inference
+)
+```
 
-## 1. Purpose
-The purpose of vision testing is to check whether the OmniSight AI vision module can process sample UI screenshots and return analysis results.
+### Detected Defect Categories
+1. **`overlapping_text`**: Text colliding with or obscuring headings, CTA buttons, badges, or card boundaries.
+2. **`misaligned_buttons`**: Buttons out of alignment with sibling buttons, flexbox baselines, or grid containers.
+3. **`clipped_elements`**: Text truncated without ellipsis, containers clipping content due to overflow hidden.
+4. **`responsive_layout`**: Viewport horizontal scrolling, awkward line wrapping, or unhandled mobile/tablet boundaries.
 
-## 2. Testing Objectives
-- Verify that the sample screenshot is available.
-- Check that the vision module can be imported.
-- Review the prompts used for screenshot analysis.
-- Check that analysis results are returned in the expected format.
-- Identify errors that need further investigation.
+### Structured CSS Fixes
+Every issue contains a structured `suggested_fix` dictionary, and the top-level response aggregates them in `css_fixes`:
+```json
+{
+  "css_fixes": {
+    ".hero-subtitle": {
+      "selector": ".hero-subtitle",
+      "properties": {
+        "margin-bottom": "24px",
+        "line-height": "1.4"
+      },
+      "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+      "issue_id": "ISSUE-001",
+      "description": "Add bottom margin to push the button below the text block and normalize line height."
+    }
+  }
+}
+```
 
-## 3. Test Scenarios
+### Secret Protection
+API keys are loaded via `os.getenv("GEMINI_API_KEY")` (with `load_dotenv()` from `.env`). Secrets are never hardcoded. When offline or testing, `mock_mode=True` allows zero-cost verification.
 
-| Test ID | Test Scenario | Expected Result |
-|---|---|---|
-| VT-01 | Load the sample UI screenshot | The screenshot is available for analysis |
-| VT-02 | Import the vision module | The module loads without import errors |
-| VT-03 | Prepare the analysis prompt | A non-empty prompt is available |
-| VT-04 | Run screenshot analysis | The module returns a result or a clear error |
-| VT-05 | Review the analysis result | The output can be inspected |
+---
 
-## 4. Test Inputs
-- Sample UI screenshot: `sample_ui.png`
-- Vision module: `ai_vision.py`
-- Prompt module: `prompts.py`
+## ⚙️ Member 3 – Action Engine (`action_engine/`)
 
-## 5. Testing Process
-1. Prepare a sample UI screenshot.
-2. Load the screenshot using the vision module.
-3. Prepare the appropriate analysis prompt.
-4. Run the analysis using the configured vision model.
-5. Review the output and note any errors.
-6. Repeat the test after fixing identified issues.
+### Module Files
+- `action_engine/processor.py`: Implementation of `process_ai_response()`.
+- `action_engine/validators.py`: Pydantic models (`VisualIssueModel`, `CSSFixModel`, `StandardizedReportModel`) and normalization utilities.
+- `action_engine/test_processor.py`: Comprehensive unit tests (14 tests).
+- `validators.py` and `test_processor.py`: Root bridges for direct root imports and test runners.
 
-## 6. Expected Outcome
-The tests should help verify the basic setup of the vision module, the availability of test inputs, and the handling of analysis results.
+### Key Function: `process_ai_response`
+```python
+from action_engine.processor import process_ai_response
 
-## 7. Limitations
-The analysis depends on the selected vision model, its configuration, the input screenshot, and the quality of the prompt. Successful execution does not guarantee that every visual issue will be detected.
+# Accepts parsed dict or raw JSON string
+processed = process_ai_response(result)
+```
 
-## 8. Week 1 Summary
-This document records the initial vision testing plan for OmniSight Member 2. Test results should be recorded after the scenarios have actually been executed.
+### Resilience & Safety Features
+- **Invalid JSON**: Catches malformed JSON and syntax errors safely, returning `{ "status": "error", "valid": False, "errors": [...] }` without raising uncaught exceptions.
+- **Markdown Fences**: Automatically strips markdown blocks (````json ... ````).
+- **Missing Fields**: Gracefully backfills defaults for `page_summary`, `recommendations`, `ui_elements`, and computes `visual_health_score` dynamically based on issue severities.
+- **Empty Issues**: Correctly reports a pristine healthy page (`total_issues: 0`, `visual_health_score: 100`, `status: "success"`).
+- **Prioritized Actions**: Sorts actionable fixes by severity (`critical` = priority 1, `high` = 2, `medium` = 3, `low` = 4).
+- **100% JSON-Compatible**: All outputs can be passed directly to `json.dumps()` or FastAPI's `JSONResponse`.
 
+---
+
+## 🔗 Member 4 Integration Guide (FastAPI Example)
+
+Member 4 can integrate Member 2 and Member 3 seamlessly inside a FastAPI endpoint:
+
+```python
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi.responses import JSONResponse
+from ai.vision_analyzer import analyze_screenshot
+from action_engine.processor import process_ai_response
+
+app = FastAPI(title="OmniSight Automated Visual QA API")
+
+@app.post("/api/v1/analyze-ui")
+async def analyze_ui_endpoint(
+    screenshot: UploadFile = File(...),
+    html_content: str = Form(None),
+    page_url: str = Form(None),
+    mock_mode: bool = Form(False),
+):
+    try:
+        # Read uploaded image bytes directly
+        image_bytes = await screenshot.read()
+        
+        # Step 1: Member 2 analyzes screenshot using VLM
+        ai_response = analyze_screenshot(
+            screenshot=image_bytes,
+            html_content=html_content,
+            page_url=page_url,
+            mock_mode=mock_mode,
+        )
+        
+        # Step 2: Member 3 validates, extracts CSS fixes, and standardizes payload
+        standardized_report = process_ai_response(ai_response)
+        
+        # Step 3: Return clean JSON to client or frontend dashboard
+        return JSONResponse(content=standardized_report)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+```
+
+---
+
+## 📄 Example Outputs
+
+Sample JSON reports generated by the pipeline are saved in:
+- `analysis_reports/example_member2_ai_output.json`: Full VLM output containing issues, structured CSS fixes, and UI element inventory.
+- `analysis_reports/example_member3_action_engine_output.json`: Action Engine standardized payload with severity counts, category distribution, and prioritized remediation actions.
+
+### Example Action Engine Output Snippet
+```json
+{
+  "status": "success",
+  "valid": true,
+  "page_url": "https://omnisight.local/dashboard",
+  "page_summary": "Web application dashboard showing navigation bar and action controls.",
+  "visual_health_score": 72,
+  "total_issues": 4,
+  "issues_by_severity": {
+    "critical": 0,
+    "high": 2,
+    "medium": 2,
+    "low": 0
+  },
+  "issues_by_category": {
+    "overlapping_text": 1,
+    "misaligned_buttons": 1,
+    "clipped_elements": 1,
+    "responsive_layout": 1
+  },
+  "css_fixes": {
+    ".hero-subtitle": {
+      "selector": ".hero-subtitle",
+      "properties": {
+        "margin-bottom": "24px",
+        "line-height": "1.4"
+      },
+      "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+      "issue_id": "ISSUE-001",
+      "description": "Add bottom margin to push the button below the text block"
+    }
+  },
+  "actions": [
+    {
+      "priority": 2,
+      "issue_id": "ISSUE-001",
+      "severity": "high",
+      "category": "overlapping_text",
+      "selector": ".hero-subtitle",
+      "action_type": "apply_css_fix",
+      "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+      "explanation": "Add bottom margin to push the button below the text block"
+    }
+  ]
+}
+```
+
+---
+
+## 🧪 Running Automated Tests
+
+Run the complete test suite (100% mocked, zero API costs):
+```bash
+python -m pytest
+```
+
+Run Member 2 unit tests:
+```bash
+python -m pytest ai/test_vision.py
+```
+
+Run Member 3 unit tests:
+```bash
+python -m pytest action_engine/test_processor.py
+```
 

@@ -1,0 +1,270 @@
+{
+  "status": "success",
+  "valid": true,
+  "page_url": "https://omnisight.local/dashboard",
+  "page_summary": "Web application dashboard for https://omnisight.local/dashboard showing navigation bar, hero analytics card, and action controls.",
+  "visual_health_score": 72,
+  "total_issues": 4,
+  "issues_by_severity": {
+    "critical": 0,
+    "high": 2,
+    "medium": 2,
+    "low": 0
+  },
+  "issues_by_category": {
+    "overlapping_text": 1,
+    "misaligned_buttons": 1,
+    "clipped_elements": 1,
+    "responsive_layout": 1
+  },
+  "issues": [
+    {
+      "issue_id": "ISSUE-001",
+      "category": "overlapping_text",
+      "severity": "high",
+      "title": "Hero subtitle overlaps primary action button",
+      "location": "Hero banner, center-left",
+      "selector": ".hero-subtitle",
+      "description": "The subtitle text block line-height extends downwards and collides with the top 15px of the primary call-to-action button.",
+      "suggested_fix": {
+        "selector": ".hero-subtitle",
+        "css_properties": {
+          "margin-bottom": "24px",
+          "line-height": "1.4"
+        },
+        "css_code": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+        "explanation": "Add bottom margin to push the button below the text block and normalize line height."
+      }
+    },
+    {
+      "issue_id": "ISSUE-002",
+      "category": "misaligned_buttons",
+      "severity": "medium",
+      "title": "Secondary action button misaligned vertically with primary button",
+      "location": "Hero banner action button group",
+      "selector": ".btn-group .btn-secondary",
+      "description": "Secondary 'Learn More' button has an inconsistent top margin offset of 6px relative to the 'Get Started' primary button.",
+      "suggested_fix": {
+        "selector": ".btn-group",
+        "css_properties": {
+          "display": "inline-flex",
+          "align-items": "center",
+          "gap": "12px"
+        },
+        "css_code": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+        "explanation": "Align button group container with flexbox align-items center and a consistent 12px gap."
+      }
+    },
+    {
+      "issue_id": "ISSUE-003",
+      "category": "clipped_elements",
+      "severity": "high",
+      "title": "Metric card title clipped by container boundary",
+      "location": "Analytics summary grid, Card 2",
+      "selector": ".metric-card-title",
+      "description": "The title 'Total Converted Registrations (Q4)' is clipped horizontally because the parent container has overflow: hidden and fixed width.",
+      "suggested_fix": {
+        "selector": ".metric-card-title",
+        "css_properties": {
+          "text-overflow": "ellipsis",
+          "white-space": "nowrap",
+          "overflow": "hidden",
+          "max-width": "100%"
+        },
+        "css_code": ".metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }",
+        "explanation": "Apply standard text truncation with ellipsis to prevent harsh clipping."
+      }
+    },
+    {
+      "issue_id": "ISSUE-004",
+      "category": "responsive_layout",
+      "severity": "medium",
+      "title": "Horizontal overflow and broken column wrapping on smaller viewports",
+      "location": "Metrics grid section",
+      "selector": ".metrics-grid",
+      "description": "The three-column metrics grid does not wrap, forcing a horizontal scrollbar on viewports under 1024px.",
+      "suggested_fix": {
+        "selector": ".metrics-grid",
+        "css_properties": {
+          "display": "grid",
+          "grid-template-columns": "repeat(auto-fit, minmax(280px, 1fr))",
+          "gap": "16px"
+        },
+        "css_code": ".metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }",
+        "explanation": "Use responsive auto-fit grid columns with a 280px minimum to automatically wrap without horizontal overflow."
+      }
+    }
+  ],
+  "css_fixes": {
+    ".hero-subtitle": {
+      "selector": ".hero-subtitle",
+      "properties": {
+        "margin-bottom": "24px",
+        "line-height": "1.4"
+      },
+      "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+      "issue_id": "ISSUE-001",
+      "description": "Add bottom margin to push the button below the text block and normalize line height."
+    },
+    ".btn-group": {
+      "selector": ".btn-group",
+      "properties": {
+        "display": "inline-flex",
+        "align-items": "center",
+        "gap": "12px"
+      },
+      "css_rule": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+      "issue_id": "ISSUE-002",
+      "description": "Align button group container with flexbox align-items center and a consistent 12px gap."
+    },
+    ".metric-card-title": {
+      "selector": ".metric-card-title",
+      "properties": {
+        "text-overflow": "ellipsis",
+        "white-space": "nowrap",
+        "overflow": "hidden",
+        "max-width": "100%"
+      },
+      "css_rule": ".metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }",
+      "issue_id": "ISSUE-003",
+      "description": "Apply standard text truncation with ellipsis to prevent harsh clipping."
+    },
+    ".metrics-grid": {
+      "selector": ".metrics-grid",
+      "properties": {
+        "display": "grid",
+        "grid-template-columns": "repeat(auto-fit, minmax(280px, 1fr))",
+        "gap": "16px"
+      },
+      "css_rule": ".metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }",
+      "issue_id": "ISSUE-004",
+      "description": "Use responsive auto-fit grid columns with a 280px minimum to automatically wrap without horizontal overflow."
+    }
+  },
+  "actions": [
+    {
+      "priority": 2,
+      "issue_id": "ISSUE-001",
+      "severity": "high",
+      "category": "overlapping_text",
+      "selector": ".hero-subtitle",
+      "action_type": "apply_css_fix",
+      "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+      "explanation": "Add bottom margin to push the button below the text block and normalize line height."
+    },
+    {
+      "priority": 2,
+      "issue_id": "ISSUE-003",
+      "severity": "high",
+      "category": "clipped_elements",
+      "selector": ".metric-card-title",
+      "action_type": "apply_css_fix",
+      "css_rule": ".metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }",
+      "explanation": "Apply standard text truncation with ellipsis to prevent harsh clipping."
+    },
+    {
+      "priority": 3,
+      "issue_id": "ISSUE-002",
+      "severity": "medium",
+      "category": "misaligned_buttons",
+      "selector": ".btn-group .btn-secondary",
+      "action_type": "apply_css_fix",
+      "css_rule": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+      "explanation": "Align button group container with flexbox align-items center and a consistent 12px gap."
+    },
+    {
+      "priority": 3,
+      "issue_id": "ISSUE-004",
+      "severity": "medium",
+      "category": "responsive_layout",
+      "selector": ".metrics-grid",
+      "action_type": "apply_css_fix",
+      "css_rule": ".metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }",
+      "explanation": "Use responsive auto-fit grid columns with a 280px minimum to automatically wrap without horizontal overflow."
+    }
+  ],
+  "ui_elements": {
+    "buttons": [
+      {
+        "label": "Get Started",
+        "type": "primary",
+        "location": "hero section left",
+        "state": "normal"
+      },
+      {
+        "label": "Learn More",
+        "type": "secondary",
+        "location": "hero section next to CTA",
+        "state": "normal"
+      },
+      {
+        "label": "Export Report",
+        "type": "icon_only",
+        "location": "top-right header",
+        "state": "normal"
+      }
+    ],
+    "input_fields": [
+      {
+        "placeholder": "Filter analytics by date or keyword...",
+        "type": "search",
+        "location": "dashboard header center",
+        "has_visible_label": false
+      }
+    ],
+    "text_elements": [
+      {
+        "text_snippet": "OmniSight Performance Dashboard",
+        "role": "h1",
+        "readability": "high"
+      },
+      {
+        "text_snippet": "Real-time automated visual regression and QA inspection metrics.",
+        "role": "body",
+        "readability": "medium"
+      }
+    ],
+    "navigation_elements": [
+      {
+        "label": "Overview",
+        "type": "nav_link",
+        "location": "header"
+      },
+      {
+        "label": "Test Runs",
+        "type": "nav_link",
+        "location": "header"
+      },
+      {
+        "label": "Settings",
+        "type": "nav_link",
+        "location": "header"
+      }
+    ],
+    "media_elements": [
+      {
+        "type": "logo",
+        "location": "top-left header",
+        "status": "rendered_properly"
+      },
+      {
+        "type": "image",
+        "location": "analytics chart container",
+        "status": "rendered_properly"
+      }
+    ]
+  },
+  "recommendations": [
+    "Add margin-bottom to .hero-subtitle to prevent overlapping CTA buttons.",
+    "Use flexbox alignment on .btn-group to keep sibling action buttons vertically centered.",
+    "Add text-overflow: ellipsis to .metric-card-title to prevent container overflow clipping.",
+    "Use CSS Grid auto-fit on .metrics-grid to support responsive wrapping on tablet and mobile viewports."
+  ],
+  "metadata": {
+    "processed_at": "2026-10-18T12:58:55.544147+00:00",
+    "engine": "OmniSight Action Engine v2.0",
+    "source_status": "success",
+    "source_model": "mock-vlm-engine"
+  },
+  "errors": []
+}

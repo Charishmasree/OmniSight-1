@@ -1,9 +1,11 @@
 """
-OmniSight - Member 2: AI/VLM Basic Setup and Prompt Testing
-Prompts Module (prompts.py)
+OmniSight - Member 2: AI Integration using Vision-Language Models (VLM)
+Prompts Module (ai/prompts.py)
 
 Contains reusable system prompts, inspection prompt builders, and JSON schema definitions
-for analyzing website screenshots with Vision-Language Models (VLMs).
+for analyzing website screenshots with Google Gemini VLM.
+Instructs the model to detect visual UI issues such as overlapping text, misaligned buttons,
+clipped elements, and responsive layout problems, and to generate structured CSS fixes.
 """
 
 from typing import List, Optional, Dict, Any
@@ -15,15 +17,23 @@ from datetime import datetime, timezone
 # ============================================================================
 
 SYSTEM_PROMPT = """You are OmniSight's Senior Automated QA & UI/UX Accessibility Vision Inspector.
-Your mission is to meticulously analyze website screenshots captured during automated browser testing.
+Your mission is to meticulously analyze website screenshots captured during automated browser testing,
+optionally assisted by HTML DOM context and page URL.
 
-You evaluate screenshots across two primary pillars:
+You evaluate the screenshot across two primary pillars:
 1. UI Element Inventory: Detect buttons, text elements, input fields, navigation controls, and media.
-2. Visual & Structural Defect Detection: Identify visual bugs such as:
-   - Overlapping elements (e.g., text overlapping buttons, badges overlapping headers).
-   - Unreadable text (e.g., poor contrast ratio, text truncated by container, microscopic font).
-   - Missing visible elements (e.g., broken image placeholders, empty containers, missing icons).
-   - Layout & responsiveness issues (e.g., misaligned columns, awkward whitespace, viewport overflow).
+2. Visual & Structural Defect Detection: Specifically diagnose UI defects including:
+   - overlapping_text: Text colliding with, obscuring, or placed awkwardly over other text, images, or buttons.
+   - misaligned_buttons: Buttons out of alignment with grid, flex containers, text baselines, or sibling buttons.
+   - clipped_elements: Text truncated by overflow without ellipsis, cut-off containers, or clipped badges/icons.
+   - responsive_layout: Horizontal scrollbar caused by element overflow, awkward line wrapping, broken columns, or viewport scaling bugs.
+   - unreadable_text: Low contrast ratio against background, microscopic font size, or unreadable styling.
+   - missing_elements: Broken image icons, empty containers, missing SVGs, or unrendered placeholders.
+
+For every visual defect detected, you MUST provide:
+- A specific CSS selector for the affected element (inferred from provided HTML or standard semantic naming).
+- A structured suggested CSS fix containing specific CSS property-value pairs and a valid CSS rule.
+- A concise explanation of why the CSS fix resolves the defect.
 
 You MUST return your findings in strict, valid JSON matching the exact schema specified.
 Do NOT include markdown formatting, conversational commentary, or text outside the JSON object.
@@ -39,12 +49,42 @@ Respond with a single valid JSON object adhering strictly to this schema:
 {
   "page_summary": "string - Concise 1-2 sentence overview of the page content and current view",
   "visual_health_score": 0-100, // Integer score: 100 is pristine UI, <60 indicates severe visual flaws
+  "issues": [
+    {
+      "issue_id": "string - e.g. 'ISSUE-001'",
+      "category": "string - overlapping_text | misaligned_buttons | clipped_elements | responsive_layout | unreadable_text | missing_elements | contrast_issue | other",
+      "severity": "string - critical | high | medium | low",
+      "title": "string - short descriptive title of the defect",
+      "location": "string - precise region on screen where the defect appears",
+      "selector": "string - CSS selector of the culprit or target element (e.g. '.hero-content h1', '.cta-btn')",
+      "description": "string - detailed explanation of what is visually broken",
+      "suggested_fix": {
+        "selector": "string - CSS selector",
+        "css_properties": {
+          "property-name": "value"
+        },
+        "css_code": "string - valid complete CSS rule (e.g. '.cta-btn { margin-top: 16px; position: relative; }')",
+        "explanation": "string - concise technical explanation of how this fix resolves the defect"
+      }
+    }
+  ],
+  "css_fixes": {
+    "selector_string": {
+      "selector": "string - CSS selector",
+      "properties": {
+        "property-name": "value"
+      },
+      "css_rule": "string - complete CSS rule",
+      "issue_id": "string - related issue_id",
+      "description": "string - brief description of what this rule fixes"
+    }
+  },
   "ui_elements": {
     "buttons": [
       {
         "label": "string - visible button text or icon description",
         "type": "string - primary | secondary | icon_only | link_button | destructive",
-        "location": "string - approximate screen location (e.g., 'top-right header', 'hero section')",
+        "location": "string - approximate screen location",
         "state": "string - normal | disabled | hovered | loading | unknown"
       }
     ],
@@ -53,12 +93,12 @@ Respond with a single valid JSON object adhering strictly to this schema:
         "placeholder": "string - placeholder text or label",
         "type": "string - text | password | email | search | select | textarea | checkbox",
         "location": "string - location on screen",
-        "has_visible_label": true | false
+        "has_visible_label": true
       }
     ],
     "text_elements": [
       {
-        "text_snippet": "string - first 5-8 words of significant text block",
+        "text_snippet": "string - first 5-8 words of text block",
         "role": "string - h1 | h2 | h3 | body | caption | badge | footer",
         "readability": "string - high | medium | low"
       }
@@ -78,17 +118,6 @@ Respond with a single valid JSON object adhering strictly to this schema:
       }
     ]
   },
-  "visual_issues": [
-    {
-      "issue_id": "string - e.g. 'ISSUE-001'",
-      "category": "string - overlapping_elements | unreadable_text | missing_elements | layout_issue | contrast_issue | other",
-      "severity": "string - critical | high | medium | low",
-      "title": "string - short descriptive title of the defect",
-      "location": "string - precise region where the issue appears",
-      "description": "string - detailed explanation of what is visually broken",
-      "recommendation": "string - suggested CSS or layout fix"
-    }
-  ],
   "recommendations": [
     "string - general actionable improvements for UI polish, accessibility, and responsiveness"
   ]
@@ -101,45 +130,57 @@ Respond with a single valid JSON object adhering strictly to this schema:
 # ============================================================================
 
 def build_analysis_prompt(
+    html_content: Optional[str] = None,
+    page_url: Optional[str] = None,
     focus_areas: Optional[List[str]] = None,
-    custom_notes: Optional[str] = None
+    custom_notes: Optional[str] = None,
 ) -> str:
     """
-    Constructs a comprehensive visual analysis prompt for the VLM.
+    Constructs a visual analysis prompt for Google Gemini VLM.
 
     Args:
+        html_content: Optional HTML snippet or full page DOM string to help correlate elements.
+        page_url: Optional URL of the target page for context.
         focus_areas: Optional list of areas to inspect more intensely
-                     (e.g., ['overlapping_elements', 'mobile_responsiveness', 'buttons']).
-        custom_notes: Optional extra context from test runner or user.
+                     (e.g., ['overlapping_text', 'misaligned_buttons', 'clipped_elements', 'responsive_layout']).
+        custom_notes: Optional extra test notes.
 
     Returns:
-        Formatted prompt string ready for VLM consumption.
+        Formatted prompt string ready for Gemini VLM.
     """
+    url_section = ""
+    if page_url:
+        url_section = f"\n### Target Page URL:\n{page_url.strip()}\n"
+
+    html_section = ""
+    if html_content:
+        # Truncate extremely long HTML to protect token budgets (~25,000 chars)
+        clean_html = html_content.strip()
+        if len(clean_html) > 25000:
+            clean_html = clean_html[:25000] + "\n<!-- [HTML content truncated for token limits] -->"
+        html_section = f"\n### HTML DOM Context for Selector Correlation:\n```html\n{clean_html}\n```\n"
+
     focus_section = ""
     if focus_areas:
         focus_list = "\n".join(f"- {area}" for area in focus_areas)
-        focus_section = f"\n### High-Priority Focus Areas for this Screenshot:\n{focus_list}\n"
+        focus_section = f"\n### Priority Focus Areas for this Screenshot:\n{focus_list}\n"
 
     notes_section = ""
     if custom_notes:
-        notes_section = f"\n### Additional Test Context:\n{custom_notes}\n"
+        notes_section = f"\n### Additional Test Context:\n{custom_notes.strip()}\n"
 
     prompt = f"""{SYSTEM_PROMPT}
+{url_section}{html_section}{focus_section}{notes_section}
+### Visual Inspection Tasks:
+1. Analyze the attached screenshot carefully for UI elements and visual bugs.
+2. Specifically inspect for:
+   - Overlapping text: Any text colliding with or obscuring other text, buttons, or cards.
+   - Misaligned buttons: Buttons out of vertical/horizontal baseline alignment, uneven padding/margins.
+   - Clipped elements: Overflowing text without ellipsis, cut-off buttons or cards, cropped icons.
+   - Responsive layout problems: Broken columns, horizontal overflow, awkward wrapping on viewport boundaries.
+3. For each defect found, generate a CSS fix dictionary with accurate CSS properties and a ready-to-use rule.
+4. Populate the top-level 'css_fixes' dictionary mapping selectors to their structured rules.
 
-### Analysis Tasks:
-1. Identify all interactive and structural UI elements:
-   - Buttons (labels, types, states, locations)
-   - Input fields (placeholders, types, locations, label presence)
-   - Key text blocks (headings, body text, readability)
-   - Navigation links and menus
-   - Media (images, logos, icons, avatars)
-
-2. Inspect thoroughly for visual and layout defects:
-   - Overlapping elements (text collisions, card overlapping, banner obscuring elements)
-   - Unreadable text (low contrast against background, clipped/truncated text, tiny fonts)
-   - Missing or broken visible elements (empty containers, broken images, unrendered icons)
-   - Layout issues (misalignments, horizontal viewport overflow, awkward whitespace)
-{focus_section}{notes_section}
 ### Output Schema:
 {JSON_SCHEMA_INSTRUCTIONS}
 
@@ -149,84 +190,205 @@ Remember: Output ONLY valid JSON.
 
 
 # ============================================================================
-# Mock Analysis Data Generator (for Offline Testing and Unit Tests)
+# Mock VLM Response Generator (Zero API Key / Offline Testing)
 # ============================================================================
 
-def get_mock_analysis_data(screenshot_path: str = "sample_screenshot.png") -> Dict[str, Any]:
+def get_mock_vlm_response(
+    screenshot: Optional[str] = None,
+    html_content: Optional[str] = None,
+    page_url: Optional[str] = None,
+) -> Dict[str, Any]:
     """
-    Generates a realistic, fully-formed mock analysis result.
-    Useful for unit testing without API keys, CI/CD pipelines, and early member integration.
+    Generates a realistic, fully-formed mock visual analysis result.
+    Demonstrates overlapping text, misaligned buttons, clipped elements,
+    and responsive layout problems with complete structured CSS fixes.
     """
+    url = page_url or "https://app.omnisight.local/dashboard"
+    screenshot_name = str(screenshot) if screenshot else "sample_screenshot.png"
+
     return {
-        "page_summary": "E-commerce landing page featuring a promotional hero section, navigation bar, and product grid.",
-        "visual_health_score": 78,
+        "page_summary": f"Web application dashboard for {url} showing navigation bar, hero analytics card, and action controls.",
+        "visual_health_score": 72,
+        "issues": [
+            {
+                "issue_id": "ISSUE-001",
+                "category": "overlapping_text",
+                "severity": "high",
+                "title": "Hero subtitle overlaps primary action button",
+                "location": "Hero banner, center-left",
+                "selector": ".hero-subtitle",
+                "description": "The subtitle text block line-height extends downwards and collides with the top 15px of the primary call-to-action button.",
+                "suggested_fix": {
+                    "selector": ".hero-subtitle",
+                    "css_properties": {
+                        "margin-bottom": "24px",
+                        "line-height": "1.4"
+                    },
+                    "css_code": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+                    "explanation": "Add bottom margin to push the button below the text block and normalize line height."
+                }
+            },
+            {
+                "issue_id": "ISSUE-002",
+                "category": "misaligned_buttons",
+                "severity": "medium",
+                "title": "Secondary action button misaligned vertically with primary button",
+                "location": "Hero banner action button group",
+                "selector": ".btn-group .btn-secondary",
+                "description": "Secondary 'Learn More' button has an inconsistent top margin offset of 6px relative to the 'Get Started' primary button.",
+                "suggested_fix": {
+                    "selector": ".btn-group",
+                    "css_properties": {
+                        "display": "inline-flex",
+                        "align-items": "center",
+                        "gap": "12px"
+                    },
+                    "css_code": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+                    "explanation": "Align button group container with flexbox align-items center and a consistent 12px gap."
+                }
+            },
+            {
+                "issue_id": "ISSUE-003",
+                "category": "clipped_elements",
+                "severity": "high",
+                "title": "Metric card title clipped by container boundary",
+                "location": "Analytics summary grid, Card 2",
+                "selector": ".metric-card-title",
+                "description": "The title 'Total Converted Registrations (Q4)' is clipped horizontally because the parent container has overflow: hidden and fixed width.",
+                "suggested_fix": {
+                    "selector": ".metric-card-title",
+                    "css_properties": {
+                        "text-overflow": "ellipsis",
+                        "white-space": "nowrap",
+                        "overflow": "hidden",
+                        "max-width": "100%"
+                    },
+                    "css_code": ".metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }",
+                    "explanation": "Apply standard text truncation with ellipsis to prevent harsh clipping."
+                }
+            },
+            {
+                "issue_id": "ISSUE-004",
+                "category": "responsive_layout",
+                "severity": "medium",
+                "title": "Horizontal overflow and broken column wrapping on smaller viewports",
+                "location": "Metrics grid section",
+                "selector": ".metrics-grid",
+                "description": "The three-column metrics grid does not wrap, forcing a horizontal scrollbar on viewports under 1024px.",
+                "suggested_fix": {
+                    "selector": ".metrics-grid",
+                    "css_properties": {
+                        "display": "grid",
+                        "grid-template-columns": "repeat(auto-fit, minmax(280px, 1fr))",
+                        "gap": "16px"
+                    },
+                    "css_code": ".metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }",
+                    "explanation": "Use responsive auto-fit grid columns with a 280px minimum to automatically wrap without horizontal overflow."
+                }
+            }
+        ],
+        "css_fixes": {
+            ".hero-subtitle": {
+                "selector": ".hero-subtitle",
+                "properties": {
+                    "margin-bottom": "24px",
+                    "line-height": "1.4"
+                },
+                "css_rule": ".hero-subtitle { margin-bottom: 24px; line-height: 1.4; }",
+                "issue_id": "ISSUE-001",
+                "description": "Add bottom margin to prevent text from overlapping primary CTA button"
+            },
+            ".btn-group": {
+                "selector": ".btn-group",
+                "properties": {
+                    "display": "inline-flex",
+                    "align-items": "center",
+                    "gap": "12px"
+                },
+                "css_rule": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+                "issue_id": "ISSUE-002",
+                "description": "Align button group container with flexbox align-items center"
+            },
+            ".metric-card-title": {
+                "selector": ".metric-card-title",
+                "properties": {
+                    "text-overflow": "ellipsis",
+                    "white-space": "nowrap",
+                    "overflow": "hidden",
+                    "max-width": "100%"
+                },
+                "css_rule": ".metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }",
+                "issue_id": "ISSUE-003",
+                "description": "Apply standard text truncation with ellipsis to prevent harsh clipping"
+            },
+            ".metrics-grid": {
+                "selector": ".metrics-grid",
+                "properties": {
+                    "display": "grid",
+                    "grid-template-columns": "repeat(auto-fit, minmax(280px, 1fr))",
+                    "gap": "16px"
+                },
+                "css_rule": ".metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }",
+                "issue_id": "ISSUE-004",
+                "description": "Use responsive auto-fit grid columns with 280px minimum"
+            }
+        },
         "ui_elements": {
             "buttons": [
                 {
-                    "label": "Shop Now",
+                    "label": "Get Started",
                     "type": "primary",
-                    "location": "hero section center",
+                    "location": "hero section left",
                     "state": "normal"
                 },
                 {
-                    "label": "Sign In",
+                    "label": "Learn More",
                     "type": "secondary",
-                    "location": "top-right header",
+                    "location": "hero section next to CTA",
                     "state": "normal"
                 },
                 {
-                    "label": "Add to Cart",
-                    "type": "primary",
-                    "location": "product card 1",
+                    "label": "Export Report",
+                    "type": "icon_only",
+                    "location": "top-right header",
                     "state": "normal"
                 }
             ],
             "input_fields": [
                 {
-                    "placeholder": "Search products, brands and categories...",
+                    "placeholder": "Filter analytics by date or keyword...",
                     "type": "search",
-                    "location": "header center",
+                    "location": "dashboard header center",
                     "has_visible_label": False
-                },
-                {
-                    "placeholder": "Enter your email for 10% off",
-                    "type": "email",
-                    "location": "newsletter footer",
-                    "has_visible_label": True
                 }
             ],
             "text_elements": [
                 {
-                    "text_snippet": "Summer Collection 2026 - Discover New Arrivals",
+                    "text_snippet": "OmniSight Performance Dashboard",
                     "role": "h1",
                     "readability": "high"
                 },
                 {
-                    "text_snippet": "Limited time offer. Free shipping over $50.",
+                    "text_snippet": "Real-time automated visual regression and QA inspection metrics.",
                     "role": "body",
                     "readability": "medium"
-                },
-                {
-                    "text_snippet": "Featured Best Sellers",
-                    "role": "h2",
-                    "readability": "high"
                 }
             ],
             "navigation_elements": [
                 {
-                    "label": "Home",
+                    "label": "Overview",
                     "type": "nav_link",
                     "location": "header"
                 },
                 {
-                    "label": "Categories",
-                    "type": "dropdown",
+                    "label": "Test Runs",
+                    "type": "nav_link",
                     "location": "header"
                 },
                 {
-                    "label": "About Us",
+                    "label": "Settings",
                     "type": "nav_link",
-                    "location": "footer"
+                    "location": "header"
                 }
             ],
             "media_elements": [
@@ -237,112 +399,24 @@ def get_mock_analysis_data(screenshot_path: str = "sample_screenshot.png") -> Di
                 },
                 {
                     "type": "image",
-                    "location": "hero banner background",
+                    "location": "analytics chart container",
                     "status": "rendered_properly"
-                },
-                {
-                    "type": "image",
-                    "location": "product card 3",
-                    "status": "placeholder"
                 }
             ]
         },
-        "visual_issues": [
-            {
-                "issue_id": "ISSUE-001",
-                "category": "overlapping_elements",
-                "severity": "high",
-                "title": "Hero subtitle overlaps primary CTA button",
-                "location": "Hero section, center right",
-                "description": "The description paragraph extends downwards and overlaps the top 20% of the 'Shop Now' button on smaller viewports.",
-                "recommendation": "Add `margin-bottom: 1.5rem` to the subtitle paragraph or wrap in a flex column layout with consistent gap."
-            },
-            {
-                "issue_id": "ISSUE-002",
-                "category": "unreadable_text",
-                "severity": "medium",
-                "title": "Low contrast on footer newsletter disclaimer",
-                "location": "Footer section, bottom center",
-                "description": "Light grey text (#A0A0A0) on white background fails WCAG 2.1 AA minimum contrast requirement (2.4:1 ratio).",
-                "recommendation": "Darken font color to at least #595959 to achieve minimum 4.5:1 contrast ratio."
-            },
-            {
-                "issue_id": "ISSUE-003",
-                "category": "missing_elements",
-                "severity": "medium",
-                "title": "Product card 3 displays broken/empty image placeholder",
-                "location": "Product grid, item 3",
-                "description": "Image element has an unrendered gray placeholder box instead of a product image.",
-                "recommendation": "Verify image asset URL and implement a styled fallback icon for missing product media."
-            }
-        ],
         "recommendations": [
-            "Fix hero section flexbox gap to prevent button overlap across different viewport widths.",
-            "Increase text contrast in footer disclaimer to meet WCAG AA standards.",
-            "Verify product image asset pipeline to ensure all grid items load high-resolution images."
-        ]
+            "Add margin-bottom to .hero-subtitle to prevent overlapping CTA buttons.",
+            "Use flexbox alignment on .btn-group to keep sibling action buttons vertically centered.",
+            "Add text-overflow: ellipsis to .metric-card-title to prevent container overflow clipping.",
+            "Use CSS Grid auto-fit on .metrics-grid to support responsive wrapping on tablet and mobile viewports."
+        ],
+        "metadata": {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "screenshot_path": screenshot_name,
+            "page_url": url,
+            "model": "mock-vlm-engine",
+            "status": "success",
+            "mock_mode": True,
+            "duration_seconds": 0.05
+        }
     }
-
-
-
-
-"""Prompts used for OmniSight AI vision analysis."""
-
-VISION_ANALYSIS_PROMPT = """
-You are an AI assistant that analyses screenshots of websites and applications.
-
-Examine the provided screenshot carefully and report:
-
-1. UI elements that are visible, such as buttons, text fields,
-   menus, headings, images, and navigation bars.
-2. The layout and arrangement of the elements.
-3. Any visible error messages or unusual UI behaviour.
-4. Text that can be read clearly from the screenshot.
-5. Possible usability or accessibility issues.
-
-Rules:
-- Describe only what is visible in the screenshot.
-- Do not invent missing text or UI elements.
-- If something is unclear, state that it is unclear.
-- Keep the analysis clear, structured, and concise.
-"""
-
-UI_ELEMENT_PROMPT = """
-Identify the main user-interface elements in the screenshot.
-
-For each element, describe:
-- Element type
-- Visible text, if any
-- Approximate location
-- Purpose, if it can be determined
-
-Do not guess information that cannot be confirmed from the image.
-"""
-
-UI_ISSUE_PROMPT = """
-Review the screenshot for visible user-interface problems.
-
-Look for:
-- Overlapping or misaligned elements
-- Text that is cut off or difficult to read
-- Missing or broken images
-- Inconsistent spacing
-- Visible error messages
-
-For each possible issue, explain what is visible.
-Do not claim that a button or feature is broken unless the screenshot
-provides evidence.
-"""
-
-def get_vision_analysis_prompt():
-    """Return the main screenshot analysis prompt."""
-    return VISION_ANALYSIS_PROMPT
-
-def get_ui_element_prompt():
-    """Return the prompt for identifying UI elements."""
-    return UI_ELEMENT_PROMPT
-
-def get_ui_issue_prompt():
-    """Return the prompt for identifying visible UI issues."""
-    return UI_ISSUE_PROMPT
-
