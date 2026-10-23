@@ -1,0 +1,38 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "▶ Run Member 3 Demo (Action Engine)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/run_member3.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run Member 3 Tests (Action Parser)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/action_engine/test_action_parser.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run Member 3 Tests (Action Processor)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/action_engine/test_processor.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run All Member 3 Tests (Pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["action_engine/"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    }
+  ]
+}

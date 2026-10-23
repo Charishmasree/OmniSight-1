@@ -1,25 +1,47 @@
 """
-OmniSight - Member 2: AI Integration using Vision-Language Models (VLM)
-AI Package (ai)
+OmniSight - Member 3: Action Engine using Python + JSON
+Action Engine Package (action_engine)
 
-Provides automated visual QA inspection for website screenshots using Google Gemini VLM.
-Detects visual defects including overlapping text, misaligned buttons, clipped elements,
-and responsive layout problems, returning structured issue data and CSS fixes.
+Validates Member 2's AI/VLM responses, extracts visual issues and CSS fixes,
+and returns standardized, JSON-compatible output ready for Member 4's FastAPI backend.
 """
 
-from ai.vision_analyzer import VisionAnalyzer, analyze_screenshot
-from ai.prompts import (
-    SYSTEM_PROMPT,
-    JSON_SCHEMA_INSTRUCTIONS,
-    build_analysis_prompt,
-    get_mock_vlm_response,
+from action_engine.action_parser import (
+    parse_ai_response,
+    normalize_issue,
+    validate_issue,
+    convert_to_json,
+    ValidationResult,
+    IssueModel,
+    ActionEngineResponseModel,
+    SuggestedFixModel as ParserSuggestedFixModel,
+    VALID_SEVERITIES,
+    DEFAULT_SEVERITY,
+)
+from action_engine.processor import process_ai_response
+from action_engine.validators import (
+    validate_ai_response,
+    CSSFixModel,
+    VisualIssueModel,
+    SuggestedFixModel,
+    StandardizedReportModel,
 )
 
 __all__ = [
-    "VisionAnalyzer",
-    "analyze_screenshot",
-    "SYSTEM_PROMPT",
-    "JSON_SCHEMA_INSTRUCTIONS",
-    "build_analysis_prompt",
-    "get_mock_vlm_response",
+    "parse_ai_response",
+    "normalize_issue",
+    "validate_issue",
+    "convert_to_json",
+    "ValidationResult",
+    "IssueModel",
+    "ActionEngineResponseModel",
+    "ParserSuggestedFixModel",
+    "VALID_SEVERITIES",
+    "DEFAULT_SEVERITY",
+    "process_ai_response",
+    "validate_ai_response",
+    "CSSFixModel",
+    "VisualIssueModel",
+    "SuggestedFixModel",
+    "StandardizedReportModel",
 ]
