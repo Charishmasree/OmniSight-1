@@ -1,0 +1,112 @@
+
+import json
+from typing import Any
+
+
+REQUIRED_FIELDS = [
+    "element",
+    "issue_type",
+    "severity",
+    "description",
+    "suggested_css_fix",
+]
+
+
+def parse_ai_response(ai_response: Any) -> dict:
+    """
+    Parse the AI/VLM response and return structured UI issues.
+
+    Args:
+        ai_response: A JSON string or a Python dictionary
+                     returned by the AI integration module.
+
+    Returns:
+        A dictionary containing a list of validated UI issues.
+
+    Raises:
+        ValueError: If the response is invalid or has missing fields.
+        TypeError: If the response has an unsupported type.
+    """
+
+    # Accept either a JSON string or an existing dictionary.
+    if isinstance(ai_response, str):
+        try:
+            data = json.loads(ai_response)
+        except json.JSONDecodeError as exc:
+            raise ValueError("AI response contains invalid JSON.") from exc
+    elif isinstance(ai_response, dict):
+        data = ai_response
+    else:
+        raise TypeError(
+            "AI response must be a JSON string or dictionary."
+        )
+
+    if not isinstance(data, dict):
+        raise ValueError("AI response must contain a JSON object.")
+
+    issues = data.get("issues")
+
+    if not isinstance(issues, list):
+        raise ValueError("'issues' must be a list.")
+
+    parsed_issues = []
+
+    for index, issue in enumerate(issues):
+        if not isinstance(issue, dict):
+            raise ValueError(
+                f"Issue at index {index} must be a JSON object."
+            )
+
+        missing_fields = [
+            field
+            for field in REQUIRED_FIELDS
+            if field not in issue
+        ]
+
+        if missing_fields:
+            raise ValueError(
+                f"Issue at index {index} is missing fields: "
+                f"{', '.join(missing_fields)}"
+            )
+
+        # Validate required values without silently changing their meaning.
+        for field in REQUIRED_FIELDS:
+            if not isinstance(issue[field], str) or not issue[field].strip():
+                raise ValueError(
+                    f"'{field}' in issue at index {index} "
+                    "must be a non-empty string."
+                )
+
+        parsed_issues.append({
+            field: issue[field].strip()
+            for field in REQUIRED_FIELDS
+        })
+
+    return {"issues": parsed_issues}
+
+
+def main() -> None:
+    """Run a sample Action Engine parsing demonstration."""
+
+    sample_response = {
+        "issues": [
+            {
+                "element": "Submit button",
+                "issue_type": "misalignment",
+                "severity": "medium",
+                "description": "The button is not aligned with the form.",
+                "suggested_css_fix": "margin-left: auto;"
+            }
+        ]
+    }
+
+    try:
+        result = parse_ai_response(sample_response)
+        print("Action Engine output:")
+        print(json.dumps(result, indent=2))
+    except (ValueError, TypeError) as error:
+        print(f"Error parsing AI response: {error}")
+
+
+if __name__ == "__main__":
+    main()
