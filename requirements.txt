@@ -13,6 +13,10 @@ python-dotenv>=1.0.0
 # Data validation and parsing
 pydantic>=2.0.0
 
+# Browser automation and DOM patching (Week 3 Self-Healing)
+playwright>=1.40.0
+
 # Testing frameworks
 pytest>=8.0.0
 pytest-mock>=3.12.0
+

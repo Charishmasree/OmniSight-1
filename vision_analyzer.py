@@ -35,6 +35,8 @@ from config import (
 from ai.prompts import (
     build_analysis_prompt,
     get_mock_vlm_response,
+    build_verification_prompt,
+    get_mock_verification_response,
 )
 
 # Load environment variables from .env if present
@@ -432,6 +434,92 @@ class VisionAnalyzer:
 
         return parsed_data
 
+    def verify_fix(
+        self,
+        screenshot: Union[str, Path, bytes, Image.Image],
+        original_issue: Dict[str, Any],
+        applied_css: str,
+        attempt: int = 1,
+        max_attempts: int = 3,
+        html_content: Optional[str] = None,
+        force_status: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Week 3: Sends an updated screenshot to the VLM to verify if an applied CSS fix
+        resolved the original visual defect.
+
+        Args:
+            screenshot: Path to post-fix screenshot, raw bytes, or PIL Image.
+            original_issue: Issue dictionary detected in prior analysis.
+            applied_css: CSS rules injected into the DOM.
+            attempt: Current retry attempt index (1-based).
+            max_attempts: Maximum retry attempts configured.
+            html_content: Optional DOM context.
+            force_status: Optional forced verification status for deterministic testing.
+
+        Returns:
+            Structured verification result dict conforming to the verification schema:
+            - verification_status: 'fixed' | 'partially_fixed' | 'unresolved'
+            - verification_reason: str
+            - defect_resolved: bool
+            - visual_health_score: int
+            - remaining_issues: list
+            - revised_css_suggestion: Optional dict
+            - metadata: execution timestamp, model, duration
+        """
+        start_time = time.time()
+        image_bytes, mime_type, image_info, image_name = self._prepare_image_data(screenshot)
+
+        if self.config.mock_mode:
+            logger.info(f"[MOCK MODE] Verifying CSS fix for attempt {attempt}/{max_attempts} on {image_name}")
+            parsed_data = get_mock_verification_response(
+                original_issue=original_issue,
+                applied_css=applied_css,
+                attempt=attempt,
+                max_attempts=max_attempts,
+                force_status=force_status,
+            )
+        else:
+            prompt = build_verification_prompt(
+                original_issue=original_issue,
+                applied_css=applied_css,
+                attempt=attempt,
+                max_attempts=max_attempts,
+                html_content=html_content,
+            )
+            logger.info(f"Sending verification screenshot {image_name} to {self.config.model_name}...")
+            raw_response = self._call_gemini_api(image_bytes, mime_type, prompt)
+            parsed_data = self._clean_and_parse_json(raw_response)
+
+        # Normalize verification fields
+        status = str(parsed_data.get("verification_status", "unresolved")).lower()
+        if status not in ("fixed", "partially_fixed", "unresolved"):
+            if "fix" in status or "resolv" in status or "pass" in status:
+                status = "fixed"
+            elif "part" in status:
+                status = "partially_fixed"
+            else:
+                status = "unresolved"
+
+        parsed_data["verification_status"] = status
+        parsed_data.setdefault("defect_resolved", (status == "fixed"))
+        parsed_data.setdefault("verification_reason", "Verification completed.")
+        parsed_data.setdefault("visual_health_score", 95 if status == "fixed" else 65)
+        parsed_data.setdefault("remaining_issues", [])
+        parsed_data.setdefault("revised_css_suggestion", None)
+
+        duration = round(time.time() - start_time, 2)
+        parsed_data["metadata"] = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "screenshot_identifier": image_name,
+            "attempt": attempt,
+            "max_attempts": max_attempts,
+            "model": "mock-vlm-engine" if self.config.mock_mode else self.config.model_name,
+            "mock_mode": self.config.mock_mode,
+            "duration_seconds": duration,
+        }
+        return parsed_data
+
 
 def analyze_screenshot(
     screenshot: Union[str, Path, bytes, Image.Image],
@@ -468,3 +556,35 @@ def analyze_screenshot(
         page_url=page_url,
         **kwargs,
     )
+
+
+def verify_fix(
+    screenshot: Union[str, Path, bytes, Image.Image],
+    original_issue: Dict[str, Any],
+    applied_css: str,
+    attempt: int = 1,
+    max_attempts: int = 3,
+    html_content: Optional[str] = None,
+    api_key: Optional[str] = None,
+    model_name: Optional[str] = None,
+    mock_mode: Optional[bool] = None,
+    **kwargs,
+) -> Dict[str, Any]:
+    """
+    Convenience function to verify a CSS fix against a screenshot in a single call.
+    """
+    analyzer = VisionAnalyzer(
+        api_key=api_key,
+        model_name=model_name,
+        mock_mode=mock_mode,
+    )
+    return analyzer.verify_fix(
+        screenshot=screenshot,
+        original_issue=original_issue,
+        applied_css=applied_css,
+        attempt=attempt,
+        max_attempts=max_attempts,
+        html_content=html_content,
+        **kwargs,
+    )
+

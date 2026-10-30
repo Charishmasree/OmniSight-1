@@ -1,0 +1,38 @@
+{
+  "original_issue": {
+    "issue_id": "ISSUE-001",
+    "category": "overlapping_text",
+    "severity": "high",
+    "title": "Hero subtitle collides with primary action button",
+    "location": "Hero banner center",
+    "selector": ".hero-subtitle",
+    "description": "Negative margin causes subtitle text to collide with and obscure the top of the CTA button.",
+    "suggested_fix": {
+      "selector": ".hero-subtitle",
+      "css_properties": {
+        "margin-bottom": "24px",
+        "line-height": "1.4"
+      },
+      "css_code": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+      "explanation": "Normalizes bottom margin to 24px and line-height to 1.4, removing overlap with the CTA button."
+    }
+  },
+  "suggested_css": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+  "attempt": 0,
+  "verification_status": "unresolved",
+  "verification_reason": "Browser automation error: Failed to launch Playwright browser: No module named 'playwright'",
+  "screenshot_path": "",
+  "success": false,
+  "total_attempts": 0,
+  "max_attempts": 3,
+  "history": [],
+  "metadata": {
+    "timestamp": "2026-10-27T06:42:45.459468+00:00",
+    "page_target": "C:\\Users\\USER\\OneDrive\\Desktop\\Omnisight-1\\sample_pages\\defect_page.html",
+    "total_duration_seconds": 0.0,
+    "max_attempts_configured": 3,
+    "mock_mode": true,
+    "runtime_dom_only_note": "IMPORTANT ARCHITECTURAL NOTE: The CSS fix was injected into the browser DOM in-memory at runtime via Playwright. These changes are NOT automatically saved to the application's source files. Permanent remediation requires pushing the validated CSS rule to code repository files.",
+    "output_directory": "C:\\Users\\USER\\OneDrive\\Desktop\\Omnisight-1\\analysis_reports\\self_healing\\run_20261027_064245"
+  }
+}

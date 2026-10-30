@@ -261,7 +261,7 @@
     "Use CSS Grid auto-fit on .metrics-grid to support responsive wrapping on tablet and mobile viewports."
   ],
   "metadata": {
-    "processed_at": "2026-10-22T04:07:11.691072+00:00",
+    "processed_at": "2026-10-29T11:26:51.575103+00:00",
     "engine": "OmniSight Action Engine v2.0",
     "source_status": "success",
     "source_model": "mock-vlm-engine"

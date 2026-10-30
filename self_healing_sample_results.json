@@ -1,0 +1,182 @@
+{
+  "description": "OmniSight Week 3 - Multimodal UI Self-Healing Loop Sample Verification Results",
+  "samples": {
+    "case_1_successful_fix_single_attempt": {
+      "original_issue": {
+        "issue_id": "ISSUE-001",
+        "category": "overlapping_text",
+        "severity": "high",
+        "title": "Hero subtitle collides with primary action button",
+        "location": "Hero banner, center-left",
+        "selector": ".hero-subtitle",
+        "description": "Negative margin causes subtitle text to collide with and obscure the top of the CTA button.",
+        "suggested_fix": {
+          "selector": ".hero-subtitle",
+          "css_properties": {
+            "margin-bottom": "24px",
+            "line-height": "1.4"
+          },
+          "css_code": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+          "explanation": "Normalizes bottom margin to 24px and line-height to 1.4, removing overlap with the CTA button."
+        }
+      },
+      "suggested_css": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+      "attempt": 1,
+      "verification_status": "fixed",
+      "verification_reason": "Defect resolved. Element '.hero-subtitle' is properly displayed with no overlapping text, clipping, or misalignment in the updated screenshot.",
+      "screenshot_path": "analysis_reports/self_healing/sample_runs/fixed_attempt_1.png",
+      "success": true,
+      "total_attempts": 1,
+      "max_attempts": 3,
+      "history": [
+        {
+          "attempt": 1,
+          "suggested_css": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+          "verification_status": "fixed",
+          "verification_reason": "Defect resolved. Element '.hero-subtitle' is properly displayed with no overlapping text, clipping, or misalignment in the updated screenshot.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/fixed_attempt_1.png",
+          "visual_health_score": 96,
+          "defect_resolved": true,
+          "remaining_issues": []
+        }
+      ],
+      "metadata": {
+        "timestamp": "2026-10-27T06:36:38.327874+00:00",
+        "page_target": "sample_pages/defect_page.html",
+        "total_duration_seconds": 1.52,
+        "max_attempts_configured": 3,
+        "mock_mode": true,
+        "runtime_dom_only_note": "IMPORTANT ARCHITECTURAL NOTE: The CSS fix was injected into the browser DOM in-memory at runtime via Playwright. These changes are NOT automatically saved to the application's source files. Permanent remediation requires pushing the validated CSS rule to code repository files."
+      }
+    },
+    "case_2_multi_attempt_healing_with_revised_css": {
+      "original_issue": {
+        "issue_id": "ISSUE-002",
+        "category": "misaligned_buttons",
+        "severity": "medium",
+        "title": "Action buttons have uneven vertical baselines",
+        "location": "Hero banner button group",
+        "selector": ".btn-group .btn-secondary",
+        "description": "Secondary button has 6px baseline offset compared to primary button.",
+        "suggested_fix": {
+          "selector": ".btn-group",
+          "css_properties": {
+            "display": "inline-flex"
+          },
+          "css_code": ".btn-group { display: inline-flex; }",
+          "explanation": "Initial attempt to align buttons with inline flex."
+        }
+      },
+      "suggested_css": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+      "attempt": 2,
+      "verification_status": "fixed",
+      "verification_reason": "Defect resolved. Button baseline is aligned and button group exhibits consistent 12px horizontal spacing.",
+      "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_2_healed.png",
+      "success": true,
+      "total_attempts": 2,
+      "max_attempts": 3,
+      "history": [
+        {
+          "attempt": 1,
+          "suggested_css": ".btn-group { display: inline-flex; }",
+          "verification_status": "partially_fixed",
+          "verification_reason": "Element '.btn-group' layout improved, but minor baseline misalignment (approx 4px) remains with adjacent controls.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_1_partial.png",
+          "visual_health_score": 82,
+          "defect_resolved": false,
+          "remaining_issues": [
+            {
+              "description": "Minor remaining vertical offset on .btn-group",
+              "severity": "low"
+            }
+          ]
+        },
+        {
+          "attempt": 2,
+          "suggested_css": ".btn-group { display: inline-flex; align-items: center; gap: 12px; }",
+          "verification_status": "fixed",
+          "verification_reason": "Defect resolved. Alignment corrected with flex align-items center and 12px gap.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_2_healed.png",
+          "visual_health_score": 98,
+          "defect_resolved": true,
+          "remaining_issues": []
+        }
+      ],
+      "metadata": {
+        "timestamp": "2026-10-27T06:37:12.114521+00:00",
+        "page_target": "sample_pages/defect_page.html",
+        "total_duration_seconds": 2.84,
+        "max_attempts_configured": 3,
+        "mock_mode": true,
+        "runtime_dom_only_note": "IMPORTANT ARCHITECTURAL NOTE: The CSS fix was injected into the browser DOM in-memory at runtime via Playwright. These changes are NOT automatically saved to the application's source files. Permanent remediation requires pushing the validated CSS rule to code repository files."
+      }
+    },
+    "case_3_unresolved_maximum_retry_limit": {
+      "original_issue": {
+        "issue_id": "ISSUE-003",
+        "category": "clipped_elements",
+        "severity": "critical",
+        "title": "Data table overflows parent container",
+        "location": "Metrics section",
+        "selector": ".data-table-container",
+        "description": "Fixed width table overflows parent boundary forcing viewport clipping.",
+        "suggested_fix": {
+          "selector": ".data-table-container",
+          "css_properties": {
+            "max-width": "100%"
+          },
+          "css_code": ".data-table-container { max-width: 100%; }",
+          "explanation": "Attempt to restrict width."
+        }
+      },
+      "suggested_css": ".data-table-container { max-width: 100%; overflow-x: auto; }",
+      "attempt": 3,
+      "verification_status": "unresolved",
+      "verification_reason": "Maximum retry limit (3) exhausted. Table content continues to overflow parent card container without responsive wrap.",
+      "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_3_unresolved.png",
+      "success": false,
+      "total_attempts": 3,
+      "max_attempts": 3,
+      "history": [
+        {
+          "attempt": 1,
+          "suggested_css": ".data-table-container { max-width: 100%; }",
+          "verification_status": "unresolved",
+          "verification_reason": "Visual issue persists. Table width remains clamped by child min-width.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_1_unresolved.png",
+          "visual_health_score": 64,
+          "defect_resolved": false,
+          "remaining_issues": [{"description": "Table overflow persists", "severity": "critical"}]
+        },
+        {
+          "attempt": 2,
+          "suggested_css": ".data-table-container { width: 100%; display: block; }",
+          "verification_status": "unresolved",
+          "verification_reason": "Visual issue persists. Child columns still exceed viewport.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_2_unresolved.png",
+          "visual_health_score": 65,
+          "defect_resolved": false,
+          "remaining_issues": [{"description": "Table overflow persists", "severity": "critical"}]
+        },
+        {
+          "attempt": 3,
+          "suggested_css": ".data-table-container { max-width: 100%; overflow-x: auto; }",
+          "verification_status": "unresolved",
+          "verification_reason": "Maximum retry limit (3) exhausted. Inner table cells retain fixed 400px widths.",
+          "screenshot_path": "analysis_reports/self_healing/sample_runs/attempt_3_unresolved.png",
+          "visual_health_score": 66,
+          "defect_resolved": false,
+          "remaining_issues": [{"description": "Table overflow persists", "severity": "critical"}]
+        }
+      ],
+      "metadata": {
+        "timestamp": "2026-10-27T06:38:05.892134+00:00",
+        "page_target": "sample_pages/defect_page.html",
+        "total_duration_seconds": 4.15,
+        "max_attempts_configured": 3,
+        "mock_mode": true,
+        "runtime_dom_only_note": "IMPORTANT ARCHITECTURAL NOTE: The CSS fix was injected into the browser DOM in-memory at runtime via Playwright. These changes are NOT automatically saved to the application's source files. Permanent remediation requires pushing the validated CSS rule to code repository files."
+      }
+    }
+  }
+}

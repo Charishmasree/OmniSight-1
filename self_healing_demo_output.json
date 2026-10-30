@@ -1,0 +1,38 @@
+{
+  "original_issue": {
+    "issue_id": "ISSUE-001",
+    "category": "overlapping_text",
+    "severity": "high",
+    "title": "Hero subtitle collides with primary action button",
+    "location": "Hero banner center",
+    "selector": ".hero-subtitle",
+    "description": "Negative margin causes subtitle text to collide with and obscure the top of the CTA button.",
+    "suggested_fix": {
+      "selector": ".hero-subtitle",
+      "css_properties": {
+        "margin-bottom": "24px",
+        "line-height": "1.4"
+      },
+      "css_code": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+      "explanation": "Normalizes bottom margin to 24px and line-height to 1.4, removing overlap with the CTA button."
+    }
+  },
+  "suggested_css": ".hero-subtitle { margin-bottom: 24px !important; line-height: 1.4 !important; }",
+  "attempt": 0,
+  "verification_status": "unresolved",
+  "verification_reason": "Browser automation error: Failed to launch Playwright browser: BrowserType.launch: spawn UNKNOWN\nCall log:\n  - <launching> C:\\Users\\USER\\AppData\\Local\\ms-playwright\\chromium-1248\\chrome-win64\\chrome.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-edgeupdater --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,BlockOriginHeaderModificationOnRedirect,AvoidCorsURLLoaderRestartOnRedirect,Translate,AutoDeElevate,OptimizationHints,NetworkTimeServiceQuerying,AimEnabled,msForceBrowserSignIn,msEdgeUpdateLaunchServicesPreferredVersion --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --disable-updater-scheduler --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --disable-web-security --allow-file-access-from-files --user-data-dir=C:\\Users\\USER\\AppData\\Local\\Temp\\playwright_chromiumdev_profile-2qAaYa --remote-debugging-pipe --no-startup-window\n",
+  "screenshot_path": "",
+  "success": false,
+  "total_attempts": 0,
+  "max_attempts": 3,
+  "history": [],
+  "metadata": {
+    "timestamp": "2026-10-29T11:37:44.122114+00:00",
+    "page_target": "C:\\Users\\USER\\OneDrive\\Desktop\\Omnisight-1\\sample_pages\\defect_page.html",
+    "total_duration_seconds": 7.44,
+    "max_attempts_configured": 3,
+    "mock_mode": true,
+    "runtime_dom_only_note": "IMPORTANT ARCHITECTURAL NOTE: The CSS fix was injected into the browser DOM in-memory at runtime via Playwright. These changes are NOT automatically saved to the application's source files. Permanent remediation requires pushing the validated CSS rule to code repository files.",
+    "output_directory": "C:\\Users\\USER\\OneDrive\\Desktop\\Omnisight-1\\analysis_reports\\self_healing\\run_20261029_113736"
+  }
+}

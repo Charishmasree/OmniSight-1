@@ -2,10 +2,36 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "▶ Run OmniSight AI Vision Analyzer (main.py)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/main.py",
+      "args": ["--mock"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "▶ Run Self-Healing Loop Demo",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/run_self_healing_demo.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "▶ Run Member 3 Demo (Action Engine)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/run_member3.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run All Unit Tests (Pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/"],
       "console": "integratedTerminal",
       "justMyCode": true
     },
@@ -22,15 +48,6 @@
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/action_engine/test_processor.py",
-      "console": "integratedTerminal",
-      "justMyCode": true
-    },
-    {
-      "name": "🧪 Run All Member 3 Tests (Pytest)",
-      "type": "debugpy",
-      "request": "launch",
-      "module": "pytest",
-      "args": ["action_engine/"],
       "console": "integratedTerminal",
       "justMyCode": true
     }
