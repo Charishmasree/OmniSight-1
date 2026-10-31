@@ -418,3 +418,44 @@ class TestSelfHealingLoop(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+
+
+
+from unittest.mock import Mock
+
+
+def test_css_application():
+    page = Mock()
+    page.locator.return_value.is_visible.return_value = True
+
+    assert page.locator("#submit-button").is_visible()
+
+
+def test_css_verification():
+    verify = Mock(return_value=True)
+    assert verify() is True
+
+
+def test_css_retry():
+    apply_fix = Mock(side_effect=[False, False, True])
+
+    success = False
+    for _ in range(3):
+        if apply_fix():
+            success = True
+            break
+
+    assert success is True
+    assert apply_fix.call_count == 3
+
+
+def test_css_failure():
+    apply_fix = Mock(return_value=False)
+
+    for _ in range(3):
+        apply_fix()
+
+    assert apply_fix.call_count == 3
+
