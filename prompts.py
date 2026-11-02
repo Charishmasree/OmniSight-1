@@ -460,3 +460,31 @@ def get_mock_vlm_response(
             "duration_seconds": 0.05
         }
     }
+
+
+DEFECT_CLASSIFICATION_PROMPT = """
+Classify each detected UI defect using the following rules.
+
+Categories:
+- overlapping_text
+- misaligned_buttons
+- clipped_elements
+- responsive_layout
+- unreadable_text
+- missing_elements
+- contrast_issue
+- other
+
+Severity:
+- critical: Major UI failure that prevents essential interaction.
+- high: Important UI defect affecting usability.
+- medium: Noticeable visual problem with a workaround.
+- low: Minor cosmetic issue.
+
+Rules:
+1. Report only defects visible in the screenshot.
+2. Do not invent defects.
+3. Use the provided HTML to identify the correct selector.
+4. Avoid duplicate issue reports.
+5. Return an empty issues array if no defects are found.
+6. Return valid JSON only. on 2nd prompt.py
