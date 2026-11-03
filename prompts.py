@@ -487,4 +487,27 @@ Rules:
 3. Use the provided HTML to identify the correct selector.
 4. Avoid duplicate issue reports.
 5. Return an empty issues array if no defects are found.
-6. Return valid JSON only. on 2nd prompt.py
+6. Return valid JSON only. 
+
+
+
+
+   """    CSS_FIX_RULES = 
+Generate a minimal CSS fix for each detected UI defect.
+
+For every fix, provide:
+- selector
+- css_properties
+- css_code
+- explanation
+
+Rules:
+1. Use valid CSS syntax.
+2. Prefer minimal and targeted changes.
+3. Use selectors from the provided HTML when possible.
+4. Avoid changing unrelated elements.
+5. Avoid unnecessary !important declarations.
+6. Do not use JavaScript as a CSS fix.
+7. Do not claim that the fix has been applied.
+8. Return valid JSON only.
+"""
