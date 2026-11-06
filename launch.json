@@ -2,19 +2,36 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "▶ Run Week 4 VLM Optimization Demo",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/run_week4_demo.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "🧪 Run Week 4 VLM Optimization Tests (Pytest)",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "pytest",
+      "args": ["tests/test_vlm_optimization.py", "-v"],
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "▶ Run Self-Healing Loop Demo (Week 3)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/run_self_healing_demo.py",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
       "name": "▶ Run OmniSight AI Vision Analyzer (main.py)",
       "type": "debugpy",
       "request": "launch",
       "program": "${workspaceFolder}/main.py",
       "args": ["--mock"],
-      "console": "integratedTerminal",
-      "justMyCode": true
-    },
-    {
-      "name": "▶ Run Self-Healing Loop Demo",
-      "type": "debugpy",
-      "request": "launch",
-      "program": "${workspaceFolder}/run_self_healing_demo.py",
       "console": "integratedTerminal",
       "justMyCode": true
     },

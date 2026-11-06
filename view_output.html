@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OmniSight – Week 4 VLM Optimization & Visual QA Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #111827;
+      --bg-card: #1e293b;
+      --bg-card-hover: #24344d;
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-indigo: #6366f1;
+      --accent-indigo-glow: rgba(99, 102, 241, 0.25);
+      --accent-emerald: #10b981;
+      --accent-rose: #f43f5e;
+      --accent-amber: #f59e0b;
+      --accent-cyan: #06b6d4;
+      --border-color: #334155;
+      --radius-lg: 16px;
+      --radius-md: 10px;
+      --radius-sm: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg-primary);
+      color: var(--text-primary);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    /* Header & Navigation */
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .brand-logo {
+      width: 42px;
+      height: 42px;
+      background: linear-gradient(135deg, #4f46e5, #06b6d4);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 20px;
+      box-shadow: 0 4px 16px var(--accent-indigo-glow);
+    }
+
+    .brand-title h1 {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-title p {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .header-badges {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge {
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .badge-primary {
+      background: rgba(99, 102, 241, 0.15);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    /* Main Container */
+    .container {
+      max-width: 1280px;
+      margin: 32px auto;
+      padding: 0 24px;
+    }
+
+    /* KPI Summary Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 22px;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      border-color: var(--accent-indigo);
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+    }
+
+    .metric-card.indigo::before { background: var(--accent-indigo); }
+    .metric-card.emerald::before { background: var(--accent-emerald); }
+    .metric-card.rose::before { background: var(--accent-rose); }
+    .metric-card.cyan::before { background: var(--accent-cyan); }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .metric-subtext {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 6px;
+    }
+
+    /* Interactive Tab Controls */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      background: var(--bg-secondary);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      margin-bottom: 28px;
+      overflow-x: auto;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 14px;
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .tab-btn.active {
+      background: var(--accent-indigo);
+      color: #fff;
+      box-shadow: 0 4px 12px var(--accent-indigo-glow);
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+      animation: fadeIn 0.25s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Section Cards */
+    .content-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      margin-bottom: 28px;
+    }
+
+    .content-box-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .content-box-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+
+    /* Visual Chunking Diagrams */
+    .chunk-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+    }
+
+    .chunk-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      position: relative;
+    }
+
+    .chunk-card.active-content {
+      border-color: rgba(99, 102, 241, 0.5);
+      background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, var(--bg-secondary) 100%);
+    }
+
+    .chunk-card.skipped-blank {
+      border-color: rgba(100, 116, 139, 0.3);
+      opacity: 0.65;
+      background: rgba(15, 23, 42, 0.4);
+    }
+
+    .chunk-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .chunk-title {
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .chunk-thumb {
+      width: 100%;
+      height: 140px;
+      background: #0f172a;
+      border-radius: 6px;
+      border: 1px solid #334155;
+      overflow: hidden;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .chunk-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .chunk-meta {
+      font-size: 12px;
+      color: var(--text-secondary);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Defect Crop Cards */
+    .crops-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 24px;
+    }
+
+    .crop-card {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+
+    .crop-preview-box {
+      background: #0f172a;
+      padding: 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--border-color);
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .crop-preview-box img {
+      max-width: 100%;
+      max-height: 220px;
+      border-radius: 6px;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .crop-details {
+      padding: 20px;
+    }
+
+    .crop-tag {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      padding: 4px 8px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+    }
+
+    .crop-tag.high {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .crop-tag.medium {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .crop-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .crop-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 16px;
+    }
+
+    /* Code Snippets & CSS Fixes */
+    .code-box {
+      background: #090d16;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      position: relative;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      overflow-x: auto;
+    }
+
+    .copy-btn {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: var(--accent-indigo);
+    }
+
+    /* Comparison Table */
+    .table-container {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      text-align: left;
+    }
+
+    th {
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+
+    td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.4);
+    }
+
+    tr:hover td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .savings-pill {
+      background: rgba(16, 185, 129, 0.15);
+      color: #34d399;
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    /* Live Interactive Defect Simulator */
+    .sim-container {
+      background: #f8fafc;
+      color: #0f172a;
+      border-radius: 12px;
+      padding: 32px;
+      border: 2px solid #e2e8f0;
+      margin-top: 16px;
+    }
+
+    .sim-header {
+      font-size: 20px;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+
+    .sim-subtitle {
+      font-size: 14px;
+      color: #64748b;
+      margin-bottom: 24px;
+      transition: margin 0.3s;
+    }
+
+    .sim-cta {
+      padding: 12px 24px;
+      background: #4f46e5;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .sim-defect-active .sim-subtitle {
+      margin-bottom: -18px; /* Intentional collision defect */
+      color: #dc2626;
+      font-weight: 700;
+    }
+
+    .sim-defect-fixed .sim-subtitle {
+      margin-bottom: 24px !important; /* Fixed */
+      color: #64748b;
+      font-weight: 400;
+    }
+
+    .toggle-switch {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 48px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #cbd5e1;
+      transition: .3s;
+      border-radius: 24px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 18px;
+      width: 18px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #10b981;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-logo">👁</div>
+      <div class="brand-title">
+        <h1>OmniSight Visual QA & VLM Optimization</h1>
+        <p>Member 2 • Multimodal UI Self-Healing & RPA Agent</p>
+      </div>
+    </div>
+    <div class="header-badges">
+      <span class="badge badge-success">● 177 Tests Passing</span>
+      <span class="badge badge-primary">Week 4 VLM Optimizer Online</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- KPI Summary Row -->
+    <div class="metrics-grid">
+      <div class="metric-card emerald">
+        <div class="metric-label">Token Savings</div>
+        <div class="metric-value">87.5% <span style="font-size: 14px; color: var(--accent-emerald);">↓</span></div>
+        <div class="metric-subtext">1,806 multimodal input tokens saved</div>
+      </div>
+
+      <div class="metric-card cyan">
+        <div class="metric-label">Pixel Reduction</div>
+        <div class="metric-value">93.6% <span style="font-size: 14px; color: var(--accent-cyan);">↓</span></div>
+        <div class="metric-subtext">2.88M px reduced to 184K px ROI</div>
+      </div>
+
+      <div class="metric-card indigo">
+        <div class="metric-label">Visual Health Score</div>
+        <div class="metric-value">72 <span style="font-size: 18px; color: var(--text-muted);">/ 100</span></div>
+        <div class="metric-subtext">4 Actionable UI defects diagnosed</div>
+      </div>
+
+      <div class="metric-card rose">
+        <div class="metric-label">Efficiency Speedup</div>
+        <div class="metric-value">2.0x <span style="font-size: 14px; color: var(--accent-rose);">⚡</span></div>
+        <div class="metric-subtext">2 blank whitespace chunks skipped</div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="tab-bar">
+      <button class="tab-btn active" onclick="switchTab(event, 'tab-overview')">📊 Executive Overview</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-chunking')">🧩 Image Chunking (4 Slices)</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-crops')">🎯 Cropped Anomaly ROIs</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-defects')">🛠️ Detected Defects & CSS Fixes</button>
+      <button class="tab-btn" onclick="switchTab(event, 'tab-simulator')">🧪 Live Interactive Healing Demo</button>
+    </div>
+
+    <!-- Tab 1: Executive Overview -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="content-box">
+        <div class="content-box-title">
+          <span>VLM Optimization vs Full Screenshot Baseline</span>
+          <span class="badge badge-success">87.5% Less Cost</span>
+        </div>
+        <div class="content-box-desc">
+          Comparing raw full-page screenshot transmission vs Week 4 intelligent chunking, cropping, and payload compression.
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Inspection Method</th>
+                <th>Dimensions</th>
+                <th>Total Pixels</th>
+                <th>Est. Gemini Tokens</th>
+                <th>Latency</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Full Screenshot Baseline</strong></td>
+                <td>1200 x 2400 px</td>
+                <td>2,880,000 px</td>
+                <td>2,064 tokens</td>
+                <td>~1.85s</td>
+                <td><span style="color: var(--accent-amber);">Unoptimized Baseline</span></td>
+              </tr>
+              <tr>
+                <td><strong>Week 4 Overlapping Chunking</strong></td>
+                <td>1200 x 800 px (4 slices)</td>
+                <td>1,920,000 px</td>
+                <td>1,032 tokens</td>
+                <td>~0.92s</td>
+                <td><span class="savings-pill">50.0% Tokens Saved</span></td>
+              </tr>
+              <tr style="background: rgba(99, 102, 241, 0.08);">
+                <td><strong>Week 4 Cropped Component (ROI)</strong></td>
+                <td>330 x 560 px</td>
+                <td>184,800 px</td>
+                <td>258 tokens</td>
+                <td>~0.057s</td>
+                <td><span class="savings-pill" style="background: rgba(99, 102, 241, 0.25); color: #a5b4fc;">87.5% Tokens Saved (Optimal)</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Image Chunking -->
+    <div id="tab-chunking" class="tab-content">
+      <div class="content-box">
+        <div class="content-box-title">
+          <span>Tall Screenshot Slicing & Overlap Safety</span>
+          <span class="badge badge-primary">Overlap Margin: 60px</span>
+        </div>
+        <div class="content-box-desc">
+          Screenshots taller than 1200px are divided into 1200x800 overlapping slices. Slices with pixel standard deviation &lt; 4.0 are identified as flat whitespace and skipped automatically to prevent wasteful API calls.
+        </div>
+
+        <div class="chunk-grid">
+          <!-- Chunk 0 -->
+          <div class="chunk-card active-content">
+            <div class="chunk-header">
+              <span class="chunk-title">Chunk #0 (Top Hero Section)</span>
+              <span class="badge badge-success">ACTIVE CONTENT</span>
+            </div>
+            <div class="chunk-thumb">
+              <img src="analysis_reports/week4_optimization/chunks/chunk_0.png" alt="Chunk 0 Preview" onerror="this.src='sample_screenshots/sample_ui.png'">
+            </div>
+            <div class="chunk-meta">
+              <span>Bounding Box: [0, 0, 1200, 800]</span>
+              <span>Tokens: 258 • Status: Overlapping bug found</span>
+            </div>
+          </div>
+
+          <!-- Chunk 1 -->
+          <div class="chunk-card active-content">
+            <div class="chunk-header">
+              <span class="chunk-title">Chunk #1 (Metrics Grid)</span>
+              <span class="badge badge-success">ACTIVE CONTENT</span>
+            </div>
+            <div class="chunk-thumb">
+              <img src="analysis_reports/week4_optimization/chunks/chunk_1.png" alt="Chunk 1 Preview" onerror="this.src='sample_screenshots/sample_ui.png'">
+            </div>
+            <div class="chunk-meta">
+              <span>Bounding Box: [0, 740, 1200, 1540]</span>
+              <span>Tokens: 258 • Status: 60px overlap safety active</span>
+            </div>
+          </div>
+
+          <!-- Chunk 2 -->
+          <div class="chunk-card skipped-blank">
+            <div class="chunk-header">
+              <span class="chunk-title">Chunk #2 (Spacer Area)</span>
+              <span class="badge" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8;">SKIPPED BLANK</span>
+            </div>
+            <div class="chunk-thumb" style="background: #1e293b; color: #64748b; font-size: 13px;">
+              [Uniform Whitespace Spacer]
+            </div>
+            <div class="chunk-meta">
+              <span>Bounding Box: [0, 1480, 1200, 2280]</span>
+              <span>Tokens: 0 SAVED (stddev = 0.00 &lt; 4.0)</span>
+            </div>
+          </div>
+
+          <!-- Chunk 3 -->
+          <div class="chunk-card skipped-blank">
+            <div class="chunk-header">
+              <span class="chunk-title">Chunk #3 (Page Bottom)</span>
+              <span class="badge" style="background: rgba(100, 116, 139, 0.2); color: #94a3b8;">SKIPPED BLANK</span>
+            </div>
+            <div class="chunk-thumb" style="background: #1e293b; color: #64748b; font-size: 13px;">
+              [Uniform Whitespace Spacer]
+            </div>
+            <div class="chunk-meta">
+              <span>Bounding Box: [0, 1600, 1200, 2400]</span>
+              <span>Tokens: 0 SAVED (stddev = 0.00 &lt; 4.0)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Cropped Anomaly ROIs -->
+    <div id="tab-crops" class="tab-content">
+      <div class="content-box">
+        <div class="content-box-title">
+          <span>Automated Suspicious Component Cropping</span>
+          <span class="badge badge-primary">Computer Vision Edge Analysis</span>
+        </div>
+        <div class="content-box-desc">
+          Automated edge and contrast analysis isolates anomaly regions with 25px surrounding context padding for hyper-focused QA evaluation.
+        </div>
+
+        <div class="crops-grid">
+          <!-- Crop 1 -->
+          <div class="crop-card">
+            <div class="crop-preview-box">
+              <img src="analysis_reports/week4_optimization/crops/overlapping_text_crop.png" alt="Overlapping Text Crop" onerror="this.src='sample_screenshots/sample_ui.png'">
+            </div>
+            <div class="crop-details">
+              <span class="crop-tag high">High Severity • Overlapping Text</span>
+              <div class="crop-title">Hero Subtitle Collides with CTA Button</div>
+              <div class="crop-desc">
+                High visual edge density detected collision between subtitle copy and primary action button baseline.
+              </div>
+              <div class="code-box">
+                <button class="copy-btn" onclick="navigator.clipboard.writeText('.hero-subtitle { margin-bottom: 24px; line-height: 1.4; }')">Copy</button>
+.hero-subtitle {
+  margin-bottom: 24px;
+  line-height: 1.4;
+}
+              </div>
+            </div>
+          </div>
+
+          <!-- Crop 2 -->
+          <div class="crop-card">
+            <div class="crop-preview-box">
+              <img src="analysis_reports/week4_optimization/crops/clipped_elements_crop.png" alt="Clipped Elements Crop" onerror="this.src='sample_screenshots/sample_ui.png'">
+            </div>
+            <div class="crop-details">
+              <span class="crop-tag high">High Severity • Clipped Element</span>
+              <div class="crop-title">Card Title Truncated by Boundary</div>
+              <div class="crop-desc">
+                Title copy overflows container box without standard ellipsis truncation.
+              </div>
+              <div class="code-box">
+                <button class="copy-btn" onclick="navigator.clipboard.writeText('.metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }')">Copy</button>
+.metric-card-title {
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Defects & CSS Fixes -->
+    <div id="tab-defects" class="tab-content">
+      <div class="content-box">
+        <div class="content-box-title">
+          <span>Full Issue Catalog & Action Engine Fixes</span>
+          <span class="badge badge-success">4 Remediations Ready</span>
+        </div>
+        <div class="content-box-desc">
+          Structured findings generated by Member 2 VLM Analysis, formatted for Member 3 Action Engine DOM injection.
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <!-- Issue 1 -->
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 700; font-size: 15px;">[ISSUE-001] Hero subtitle overlaps primary action button</span>
+              <span class="crop-tag high">HIGH</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+              Selector: <code style="color: #38bdf8;">.hero-subtitle</code> • Category: <code>overlapping_text</code>
+            </p>
+            <div class="code-box">
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('.hero-subtitle { margin-bottom: 24px; line-height: 1.4; }')">Copy</button>
+.hero-subtitle { margin-bottom: 24px; line-height: 1.4; }
+            </div>
+          </div>
+
+          <!-- Issue 2 -->
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 700; font-size: 15px;">[ISSUE-002] Secondary button misaligned vertically</span>
+              <span class="crop-tag medium">MEDIUM</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+              Selector: <code style="color: #38bdf8;">.btn-group .btn-secondary</code> • Category: <code>misaligned_buttons</code>
+            </p>
+            <div class="code-box">
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('.btn-group { display: inline-flex; align-items: center; gap: 12px; }')">Copy</button>
+.btn-group { display: inline-flex; align-items: center; gap: 12px; }
+            </div>
+          </div>
+
+          <!-- Issue 3 -->
+          <div style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+              <span style="font-weight: 700; font-size: 15px;">[ISSUE-003] Metric card title clipped by container boundary</span>
+              <span class="crop-tag high">HIGH</span>
+            </div>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 12px;">
+              Selector: <code style="color: #38bdf8;">.metric-card-title</code> • Category: <code>clipped_elements</code>
+            </p>
+            <div class="code-box">
+              <button class="copy-btn" onclick="navigator.clipboard.writeText('.metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }')">Copy</button>
+.metric-card-title { text-overflow: ellipsis; white-space: nowrap; overflow: hidden; max-width: 100%; }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 5: Live Interactive Simulator -->
+    <div id="tab-simulator" class="tab-content">
+      <div class="content-box">
+        <div class="content-box-title">
+          <span>Live Defect & Self-Healing Simulator</span>
+          <span class="badge badge-success">Interactive Demo</span>
+        </div>
+        <div class="content-box-desc">
+          Toggle the switch below to simulate injecting Member 2's suggested CSS fix into the DOM in real-time.
+        </div>
+
+        <div class="toggle-switch">
+          <span>Broken UI Defect</span>
+          <label class="switch">
+            <input type="checkbox" id="defectToggle" onchange="toggleFix(this.checked)">
+            <span class="slider"></span>
+          </label>
+          <span style="color: #10b981;">Self-Healing CSS Injected</span>
+        </div>
+
+        <div id="simulationBox" class="sim-container sim-defect-active">
+          <div class="sim-header">Automated UI Quality & Visual Regression Suite</div>
+          <p class="sim-subtitle">Analyze website screenshots for overlapping elements, contrast issues, and layout bugs.</p>
+          <button class="sim-cta">Run Audit Test</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchTab(evt, tabId) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+      evt.currentTarget.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+
+    function toggleFix(isFixed) {
+      const box = document.getElementById('simulationBox');
+      if (isFixed) {
+        box.classList.remove('sim-defect-active');
+        box.classList.add('sim-defect-fixed');
+      } else {
+        box.classList.remove('sim-defect-fixed');
+        box.classList.add('sim-defect-active');
+      }
+    }
+  </script>
+</body>
+</html>
+

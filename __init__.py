@@ -1,47 +1,69 @@
 """
-OmniSight - Member 3: Action Engine using Python + JSON
-Action Engine Package (action_engine)
+OmniSight - Member 2: AI Integration using Vision-Language Models (VLM)
+AI Package (ai)
 
-Validates Member 2's AI/VLM responses, extracts visual issues and CSS fixes,
-and returns standardized, JSON-compatible output ready for Member 4's FastAPI backend.
+Provides automated visual QA inspection for website screenshots using Google Gemini VLM.
+Detects visual defects including overlapping text, misaligned buttons, clipped elements,
+and responsive layout problems, returning structured issue data and CSS fixes.
+
+Week 4 VLM Optimization additions:
+- ImageChunker: Slices large/tall screenshots into overlapping chunks with blank detection
+- ImageCropper: Crops to anomalous/suspicious UI components
+- VLMTokenOptimizer: Optimizes payload and calculates token reductions
+- PerformanceTracker: Measures latency benchmarks and speedups
+- VLMOptimizer: Unified optimization engine
 """
 
-from action_engine.action_parser import (
-    parse_ai_response,
-    normalize_issue,
-    validate_issue,
-    convert_to_json,
-    ValidationResult,
-    IssueModel,
-    ActionEngineResponseModel,
-    SuggestedFixModel as ParserSuggestedFixModel,
-    VALID_SEVERITIES,
-    DEFAULT_SEVERITY,
+from ai.vision_analyzer import (
+    VisionAnalyzer,
+    analyze_screenshot,
+    verify_fix,
+    analyze_optimized,
 )
-from action_engine.processor import process_ai_response
-from action_engine.validators import (
-    validate_ai_response,
-    CSSFixModel,
-    VisualIssueModel,
-    SuggestedFixModel,
-    StandardizedReportModel,
+from ai.prompts import (
+    SYSTEM_PROMPT,
+    JSON_SCHEMA_INSTRUCTIONS,
+    build_analysis_prompt,
+    get_mock_vlm_response,
+    build_verification_prompt,
+    get_mock_verification_response,
+    build_roi_analysis_prompt,
+    build_chunk_analysis_prompt,
+    get_mock_roi_response,
+)
+from ai.optimizer import (
+    VLMOptimizer,
+    ImageChunker,
+    ImageCropper,
+    VLMTokenOptimizer,
+    PerformanceTracker,
+    ChunkMetadata,
+    ROICandidate,
+    TokenMetrics,
+    PerformanceMetrics,
 )
 
 __all__ = [
-    "parse_ai_response",
-    "normalize_issue",
-    "validate_issue",
-    "convert_to_json",
-    "ValidationResult",
-    "IssueModel",
-    "ActionEngineResponseModel",
-    "ParserSuggestedFixModel",
-    "VALID_SEVERITIES",
-    "DEFAULT_SEVERITY",
-    "process_ai_response",
-    "validate_ai_response",
-    "CSSFixModel",
-    "VisualIssueModel",
-    "SuggestedFixModel",
-    "StandardizedReportModel",
+    "VisionAnalyzer",
+    "analyze_screenshot",
+    "verify_fix",
+    "analyze_optimized",
+    "SYSTEM_PROMPT",
+    "JSON_SCHEMA_INSTRUCTIONS",
+    "build_analysis_prompt",
+    "get_mock_vlm_response",
+    "build_verification_prompt",
+    "get_mock_verification_response",
+    "build_roi_analysis_prompt",
+    "build_chunk_analysis_prompt",
+    "get_mock_roi_response",
+    "VLMOptimizer",
+    "ImageChunker",
+    "ImageCropper",
+    "VLMTokenOptimizer",
+    "PerformanceTracker",
+    "ChunkMetadata",
+    "ROICandidate",
+    "TokenMetrics",
+    "PerformanceMetrics",
 ]
