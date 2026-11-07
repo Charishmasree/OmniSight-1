@@ -935,3 +935,38 @@ class VLMOptimizer:
             baseline_dimensions=baseline_dimensions,
         )
 
+
+
+
+
+
+
+
+
+
+
+
+
+## Week 4 – VLM Optimization (Member 2)
+
+### Objective
+To optimize Vision-Language Model processing by reducing image size, unnecessary processing, token usage, and analysis time.
+
+### Implemented Features
+1. **Image Chunking:** Divides large webpage screenshots into smaller overlapping sections.
+2. **Image Cropping:** Extracts suspicious UI regions such as overlapping text and clipped buttons.
+3. **Token Optimization:** Reduces unnecessary image data before VLM analysis.
+4. **Blank Region Detection:** Skips empty screenshot sections.
+5. **Performance Tracking:** Measures preprocessing time and optimization performance.
+
+### Files Created
+- `ai/optimizer.py`
+- `run_week4_demo.py`
+- `tests/test_vlm_optimization.py`
+
+### Testing
+Executed unit tests to verify image chunking, cropping, token estimation, blank-region detection, and optimized VLM analysis.
+
+### Expected Outcome
+Faster and more efficient screenshot analysis with reduced unnecessary image processing while maintaining visual defect detection.
+
