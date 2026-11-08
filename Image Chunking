@@ -1,0 +1,22 @@
+# Week 4 – Image Chunking
+
+## Objective
+To divide large webpage screenshots into smaller image sections for efficient visual analysis.
+
+## Implementation
+- Used the ImageChunker module from ai/optimizer.py.
+- Divided large screenshots into smaller overlapping chunks.
+- Maintained a 60-pixel overlap between sections.
+- Detected blank image sections.
+- Skipped unnecessary blank sections during analysis.
+
+## Benefits
+- Reduces unnecessary image processing.
+- Helps detect UI defects in different webpage sections.
+- Prevents important UI elements from being missed at section boundaries.
+
+## Testing
+Tested image chunking using a tall webpage screenshot of 1200 x 2400 pixels.
+
+## Result
+Successfully demonstrated screenshot division and blank-section detection.
