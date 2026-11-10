@@ -970,3 +970,61 @@ Executed unit tests to verify image chunking, cropping, token estimation, blank-
 ### Expected Outcome
 Faster and more efficient screenshot analysis with reduced unnecessary image processing while maintaining visual defect detection.
 
+
+
+
+# ============================================================================
+# Week 4 : VLM Token Reduction Optimization
+# ============================================================================
+
+def calculate_token_optimization(width, height, tile_size=768):
+    """
+    Calculate image token usage and optimization details.
+    """
+
+    if width <= 0 or height <= 0:
+        raise ValueError("Image dimensions must be positive")
+
+    if tile_size <= 0:
+        raise ValueError("Tile size must be positive")
+
+    original_tokens = VLMTokenOptimizer.estimate_tokens(
+        width, height, tile_size
+    )
+
+    optimized_width = min(width, tile_size)
+    optimized_height = min(height, tile_size)
+
+    optimized_tokens = VLMTokenOptimizer.estimate_tokens(
+        optimized_width, optimized_height, tile_size
+    )
+
+    tokens_saved = max(0, original_tokens - optimized_tokens)
+
+    reduction_percentage = (
+        (tokens_saved / original_tokens) * 100
+        if original_tokens > 0 else 0
+    )
+
+    return {
+        "original_tokens": original_tokens,
+        "optimized_tokens": optimized_tokens,
+        "tokens_saved": tokens_saved,
+        "reduction_percentage": round(reduction_percentage, 2)
+    }
+
+
+# Example execution
+if __name__ == "__main__":
+    result = calculate_token_optimization(1920, 1080)
+
+    print("VLM Token Optimization Results")
+    print("--------------------------------")
+    print("Original Tokens:", result["original_tokens"])
+    print("Optimized Tokens:", result["optimized_tokens"])
+    print("Tokens Saved:", result["tokens_saved"])
+    print("Reduction:", result["reduction_percentage"], "%")
+
+
+   
+
